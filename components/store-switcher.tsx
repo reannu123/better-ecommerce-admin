@@ -84,27 +84,32 @@ export default function StoreSwitcher({
         <PopoverContent className="w-[200px] p-0">
           <Command>
             <CommandList>
-              <CommandInput placeholder="Search store..." />
+              <CommandInput
+                placeholder="Search store..."
+                name="store_name"
+              />
               <CommandEmpty>No store found.</CommandEmpty>
               <CommandGroup heading="Stores">
-                {formattedItems.map((store) => (
-                  <CommandItem
-                    key={store.value}
-                    onSelect={() => onStoreSelect(store)}
-                    className="text-sm"
-                  >
-                    <StoreIcon className="mr-2 h-4 w-4" />
-                    {store.label}
-                    <Check
-                      className={cn(
-                        "ml-auto h-4 w-4",
-                        currentStore?.value === store.value
-                          ? "opacity-100"
-                          : "opacity-0"
-                      )}
-                    />
-                  </CommandItem>
-                ))}
+                {formattedItems
+                  .sort((a, b) => a.label.localeCompare(b.label))
+                  .map((store) => (
+                    <CommandItem
+                      key={store.value}
+                      onSelect={() => onStoreSelect(store)}
+                      className="text-sm"
+                    >
+                      <StoreIcon className="mr-2 h-4 w-4" />
+                      {store.label}
+                      <Check
+                        className={cn(
+                          "ml-auto h-4 w-4",
+                          currentStore?.value === store.value
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                    </CommandItem>
+                  ))}
               </CommandGroup>
             </CommandList>
             <CommandSeparator />
