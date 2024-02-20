@@ -1,0 +1,26 @@
+version: '3'
+services:
+  app:
+    container_name: $APP_NAME
+    image: $IMAGE
+    ports:
+      - "${C_PORT}:${PORT}"
+    env_file:
+      - stack.env
+    restart: always
+  app_db:
+    container_name: $DB_NAME
+    image: mysql:latest
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+    networks:
+      - db-network
+      - default
+    restart: always
+volumes:
+  mysql_data:
+networks:
+  db-network:
+    external: true
