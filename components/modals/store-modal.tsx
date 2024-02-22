@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { redirect } from "next/dist/server/api-utils";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -83,7 +82,11 @@ const StoreModal = () => {
                 >
                   Cancel
                 </Button>
-                <Button disabled={loading} variant={"default"} type="submit">
+                <Button
+                  disabled={loading}
+                  variant={"default"}
+                  type="submit"
+                >
                   Continue
                 </Button>
               </div>
