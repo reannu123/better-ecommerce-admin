@@ -8,25 +8,19 @@ interface BillboardsPageProps {
 }
 
 const BillboardsPage: React.FC<BillboardsPageProps> = async ({ params }) => {
-  const { userId } = auth();
-  if (!userId) {
-    redirect("/login");
-  }
-
-  const store = await prismadb.store.findFirst({
+  const billboards = await prismadb.billboard.findMany({
     where: {
-      id: params.storeId,
+      storeId: params.storeId,
+    },
+    orderBy: {
+      createdAt: "desc",
     },
   });
-
-  if (!store) {
-    redirect("/");
-  }
 
   return (
     <div className="flex-col">
       <div className="flex-1 space-y-4 p-8 pt-6">
-        <BillboardClient />
+        <BillboardClient data={billboards} />
       </div>
     </div>
   );
