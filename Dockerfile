@@ -10,11 +10,13 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm i
-RUN npx prisma generate
 
 # Copy all files
 COPY . .
 ENV PORT=3000
+ARG NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+ENV NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=$NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+RUN npx prisma generate
 
 
 RUN npm run build
