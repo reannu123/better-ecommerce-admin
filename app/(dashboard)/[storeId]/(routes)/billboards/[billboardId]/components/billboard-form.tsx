@@ -71,8 +71,8 @@ export const BillboardForm: React.FC<BillboardFormProps> = ({
       } else {
         await axios.post(`/api/${params.storeId}/billboards`, data);
       }
-      router.refresh();
       router.push(`/${params.storeId}/billboards`);
+      router.refresh();
       toast.success(toastMessage);
     } catch (error) {
       toast.error("Failed to save changes.");
@@ -87,7 +87,8 @@ export const BillboardForm: React.FC<BillboardFormProps> = ({
       await axios.delete(
         `/api/${params.storeId}/billboards/${params.billboardId}`
       );
-      router.push("/");
+      router.push(`/${params.storeId}/billboards`);
+      router.refresh();
       toast.success("Billboard deleted!");
     } catch (error) {
       toast.error("Make sure to remove all categories using this billboard.");
