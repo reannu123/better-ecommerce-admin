@@ -32,7 +32,7 @@ export const SizeClient: React.FC<SizeClientProps> = ({ data }) => {
       <DataTable
         columns={columns}
         data={data}
-        searchKey="label"
+        searchKey="name"
       />
       <Heading
         title="API"
