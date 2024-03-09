@@ -5,14 +5,14 @@ import { Heading } from "@/components/ui/heading";
 import { Separator } from "@/components/ui/separator";
 import { Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { CategoryColumn, columns } from "./columns";
+import { ProductColumn, columns } from "./columns";
 import { DataTable } from "@/components/ui/date-table";
 import ApiList from "@/components/ui/api-list";
 
-interface CategoryClientProps {
-  data: CategoryColumn[];
+interface ProductClientProps {
+  data: ProductColumn[];
 }
-export const CategoryClient: React.FC<CategoryClientProps> = ({ data }) => {
+export const ProductClient: React.FC<ProductClientProps> = ({ data }) => {
   const router = useRouter();
   const params = useParams();
 
@@ -20,12 +20,10 @@ export const CategoryClient: React.FC<CategoryClientProps> = ({ data }) => {
     <>
       <div className="flex items-center justify-between">
         <Heading
-          title={`Categories (${data.length})`}
-          description="Manage your store's categories."
+          title={`Products (${data.length})`}
+          description="Manage your store's products."
         />
-        <Button
-          onClick={() => router.push(`/${params.storeId}/categories/new`)}
-        >
+        <Button onClick={() => router.push(`/${params.storeId}/products/new`)}>
           <Plus className="mr-2 h-4 w-4" />
           Add New
         </Button>
@@ -38,12 +36,12 @@ export const CategoryClient: React.FC<CategoryClientProps> = ({ data }) => {
       />
       <Heading
         title="API"
-        description="Category API calls"
+        description="Product API calls"
       />
       <Separator />
       <ApiList
-        entityName="categories"
-        entityIdName="categoryId"
+        entityName="products"
+        entityIdName="productId"
       />
     </>
   );

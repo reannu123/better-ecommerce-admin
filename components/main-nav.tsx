@@ -43,6 +43,11 @@ export default function MainNav({
       label: "Colors",
       active: pathname === `/${params.storeId}/colors`,
     },
+    {
+      href: `/${params.storeId}/products`,
+      label: "Products",
+      active: pathname === `/${params.storeId}/products`,
+    },
   ];
   return (
     <nav className={cn("flex items-center spae-x-4 lg:space-x-6", className)}>
