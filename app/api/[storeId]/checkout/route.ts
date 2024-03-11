@@ -43,11 +43,16 @@ export async function POST(req: Request) {
 
     const options = createOptions({
       line_items,
-      success_url: "http://localhost:3001/cart?success=1",
-      cancel_url: "http://localhost:3001/cart?canceled=1",
+      success_url: `${process.env.PAYMENT_REDIRECT_SUCCESS}`,
+      cancel_url: `${process.env.PAYMENT_REDIRECT_CANCELED}`,
     });
 
     const response = await sendPaymongo(options);
+    console.log(" [CHECKOUT_POST]", response);
+
+    // store checkout session, wait for payment webhook with the checkout session
+    // store order, wait for payment webhook with the order
+
     return NextResponse.json(response, { headers: corsHeaders });
   } catch (error) {
     console.log(" [CHECKOUT_POST]", error);
