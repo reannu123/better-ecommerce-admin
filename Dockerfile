@@ -13,13 +13,8 @@ RUN npm i
 
 # Copy all files
 COPY . .
-ENV PORT=3000
-ARG NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-ENV NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=$NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
 RUN npx prisma generate
 
 
-RUN npm run build
-EXPOSE 3000
-# Run npm start to start the server
-CMD [ "npm", "start" ]
+RUN chmod +x start.sh
+CMD [ "./start.sh" ]
