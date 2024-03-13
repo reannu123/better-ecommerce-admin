@@ -8,6 +8,9 @@ services:
     env_file:
       - stack.env
     restart: always
+    networks:
+      - shop-network
+      - default
   app_db:
     container_name: $DB_NAME
     image: mysql:latest
@@ -23,4 +26,6 @@ volumes:
   mysql_data:
 networks:
   db-network:
+    external: true
+  shop-network:
     external: true
