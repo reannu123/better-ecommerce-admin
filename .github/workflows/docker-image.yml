@@ -35,4 +35,4 @@ jobs:
         file: ./Dockerfile
         platforms: linux/amd64,linux/arm64
         push: true
-        tags: reannu123/testnext:latest
+        tags: ${{ github.repository_owner }}/${{ github.repository }}:latest
