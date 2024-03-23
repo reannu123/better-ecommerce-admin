@@ -39,6 +39,7 @@ export async function PATCH(
     const body = await req.json();
     const {
       name,
+      description,
       price,
       categoryId,
       colorId,
@@ -100,6 +101,7 @@ export async function PATCH(
       },
       data: {
         name,
+        description,
         price,
         categoryId,
         colorId,

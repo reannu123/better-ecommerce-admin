@@ -31,9 +31,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 
 const formSchema = z.object({
   name: z.string().min(1),
+  description: z.string().min(1).max(300),
   categoryId: z.string().min(1),
   sizeId: z.string().min(1),
   colorId: z.string().min(1),
@@ -86,6 +88,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         }
       : {
           name: "",
+          description: "",
           colorId: "",
           sizeId: "",
           categoryId: "",
@@ -187,7 +190,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               </FormItem>
             )}
           />
-          <div className="grid grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-2 grid-cols-1 gap-8">
             <FormField
               control={form.control}
               name="name"
@@ -217,6 +220,23 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       {...field}
                       disabled={loading}
                       placeholder="400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      disabled={loading}
+                      placeholder="Type a description for your product"
                     />
                   </FormControl>
                   <FormMessage />
