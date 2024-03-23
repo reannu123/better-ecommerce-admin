@@ -117,7 +117,6 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
   payload,
   label,
 }) => {
-  formatter.format;
   if (active && payload && payload.length) {
     return (
       <Card>
