@@ -4,6 +4,7 @@ interface RequestOptions {
   line_items?: lineItemsProps[];
   cancel_url?: string;
   success_url?: string;
+  reference_number?: string;
 }
 export interface lineItemsProps {
   name: string;
@@ -50,6 +51,7 @@ export const createOptions = (requestOptions: RequestOptions) => {
             email: "reannumon123@gmail.com",
             phone: "09763643131",
           },
+          reference_number: "0",
           send_email_receipt: true,
           show_description: false,
           show_line_items: true,
@@ -86,6 +88,7 @@ export const createOptions = (requestOptions: RequestOptions) => {
           success_url:
             requestOptions.success_url ||
             defaultOptions.data.data.attributes.success_url,
+          reference_number: requestOptions.reference_number,
         },
       },
     },
