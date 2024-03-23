@@ -12,7 +12,10 @@ export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders });
 }
 
-export async function POST(req: Request) {
+export async function POST(
+  req: Request,
+  { params }: { params: { storeId: string } }
+) {
   try {
     const { productIds } = await req.json();
     if (!productIds || productIds.length === 0) {
@@ -39,6 +42,19 @@ export async function POST(req: Request) {
         currency: "PHP",
         images: product.images.map((image) => image.url),
       };
+    });
+
+    const order = await prismadb.order.create({
+      data: {
+        storeId: params.storeId,
+        isPaid: false,
+        orderItems: {
+          create: productIds.map((productId: string) => ({
+            product: { connect: { id: productId } },
+            quantity: 1,
+          })),
+        },
+      },
     });
 
     const options = createOptions({
