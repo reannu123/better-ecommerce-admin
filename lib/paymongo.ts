@@ -1,20 +1,135 @@
 import axios from "axios";
-import * as qs from "querystring";
-// convert to base64
 interface RequestOptions {
-  line_items?: lineItemsProps[];
+  line_items?: LineItem[];
   cancel_url?: string;
   success_url?: string;
-  reference_number?: string;
+  reference_number: string;
 }
-export interface lineItemsProps {
+
+export interface Address {
+  city?: string;
+  country?: string;
+  line1?: string;
+  line2?: string | null;
+  postal_code?: string;
+  state?: string;
+}
+
+export interface Billing {
+  address: Address;
+  email: string;
   name: string;
-  quantity?: number;
+  phone: string;
+}
+
+export interface LineItem {
+  name: string;
+  quantity: number;
   amount: number;
-  currency: "PHP";
-  description?: string;
+  currency: string;
+  description?: string | null;
   images: string[];
 }
+
+interface Payment {
+  id: string;
+  type: string;
+  attributes: {
+    access_url: string | null;
+    amount: number;
+    balance_transaction_id: string;
+    billing: Billing;
+    currency: string;
+    description: string | null;
+    disputed: boolean;
+    external_reference_number: string | null;
+    fee: number;
+    instant_settlement: string | null;
+    livemode: boolean;
+    net_amount: number;
+    origin: string;
+    payment_intent_id: string;
+    payout: string | null;
+    source: {
+      id: string;
+      type: string;
+    };
+    statement_descriptor: string;
+    status: string;
+    tax_amount: number | null;
+    metadata: any | null; // Replace 'any' with the actual type if known
+    refunds: any[]; // Replace 'any' with the actual type if known
+    taxes: any[]; // Replace 'any' with the actual type if known
+    available_at: number;
+    created_at: number;
+    credited_at: number;
+    paid_at: number;
+    updated_at: number;
+  };
+}
+
+interface PaymentMethodOption {
+  card: {
+    request_three_d_secure: string;
+  };
+}
+
+interface PaymentIntent {
+  id: string;
+  type: string;
+  attributes: {
+    amount: number;
+    capture_type: string;
+    client_key: string;
+    currency: string;
+    description: string | null;
+    livemode: boolean;
+    statement_descriptor: string;
+    status: string;
+    last_payment_error: any | null; // Replace 'any' with the actual type if known
+    payment_method_allowed: string[];
+    payments: Payment[];
+    next_action: any | null; // Replace 'any' with the actual type if known
+    payment_method_options: PaymentMethodOption;
+    metadata: any | null; // Replace 'any' with the actual type if known
+    setup_future_usage: any | null; // Replace 'any' with the actual type if known
+    created_at: number;
+    updated_at: number;
+  };
+}
+
+interface CheckoutSession {
+  id: string;
+  type: string;
+  attributes: {
+    billing: Billing;
+    billing_information_fields_editable: string;
+    cancel_url: string;
+    checkout_url: string;
+    client_key: string;
+    customer_email: string | null;
+    description: string | null;
+    line_items: LineItem[];
+    livemode: boolean;
+    merchant: string;
+    origin: string | null;
+    paid_at: number;
+    payments: Payment[];
+    payment_intent: PaymentIntent;
+    payment_method_types: string[];
+    payment_method_used: string;
+    reference_number: string | undefined;
+    send_email_receipt: boolean;
+    show_description: boolean;
+    show_line_items: boolean;
+    status: string;
+    success_url: string;
+    created_at: number;
+    updated_at: number;
+    metadata: any | null; // Replace 'any' with the actual type if known
+  };
+}
+
 export const sendPaymongo = async (options: any) => {
   const response = await axios
     .request(options)
@@ -31,7 +146,7 @@ export const sendPaymongo = async (options: any) => {
 export const createOptions = (requestOptions: RequestOptions) => {
   const encodedCredentials = Buffer.from(
     `${process.env.PAYMONGO_SECRET_KEY}:`
-  ).toString();
+  ).toString("base64");
   const defaultOptions = {
     method: "POST",
     url: "https://api.paymongo.com/v1/checkout_sessions",
@@ -98,290 +213,24 @@ export const createOptions = (requestOptions: RequestOptions) => {
     },
   };
 };
-const webhook = {
-  data: {
-    id: "evt_YMqJAS2eZ1V1p5wzzqXP4uEC",
-    type: "event",
-    attributes: {
-      type: "checkout_session.payment.paid",
-      livemode: true,
-      data: {
-        id: "cs_CbFCTDfxvMFNjwjVi26Uzhtj",
-        type: "checkout_session",
-        attributes: {
-          billing: {
-            address: {
-              city: "Taguig",
-              country: "PH",
-              line1: "address line 1",
-              line2: "address line 2",
-              postal_code: "1234",
-              state: "PH-MNL",
-            },
-            email: "john.doe@paymongo.com",
-            name: "John doe",
-            phone: null,
-          },
-          checkout_url:
-            "https://checkout.paymongo.com/cs_CbFCTasdvMFNjwjVi26Uzhtj#fneklwafoifdlsa123f5v1=",
-          client_key:
-            "cs_CbFCTDfxvMFNjwjVi26Uzhtj_client_YyXPYEejtNMmeZfcg5AAzXQ8",
-          description: "The beanie products.",
-          line_items: [
-            {
-              amount: 550,
-              currency: "PHP",
-              description: "A fresh bag of coffee beanines.",
-              images: [
-                "https://images.unsplash.com/photo-1612346903007-b5ac8bb135bb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80",
-              ],
-              name: "Beanines",
-              quantity: 100,
-            },
-            {
-              amount: 125000,
-              currency: "PHP",
-              description: "A locally grown Jasmine Rice.",
-              images: [
-                "https://images.unsplash.com/photo-1612346903007-b5ac8bb135bb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80",
-              ],
-              name: "Jasmine Rice 25KG",
-              quantity: 1,
-            },
-          ],
-          livemode: true,
-          merchant: "Paymongo Test Account",
-          payments: [
-            {
-              id: "pay_gPSJ6SB24SVEa5hH8LrXBtd4",
-              type: "payment",
-              attributes: {
-                access_url: null,
-                amount: 180000,
-                balance_transaction_id: "bal_txn_ck7GWJfM19q5YFQKFqo17vbu",
-                billing: {
-                  address: {
-                    city: "Taguig",
-                    country: "PH",
-                    line1: "Address 1",
-                    line2: "",
-                    postal_code: "1234",
-                    state: "Metro Manila",
-                  },
-                  email: "juan.delacruz@paymongo.com",
-                  name: "Customer Name",
-                  phone: "",
-                },
-                currency: "PHP",
-                description: "The beanie products.",
-                disputed: false,
-                external_reference_number: null,
-                fee: 9000,
-                foreign_fee: 1800,
-                livemode: true,
-                net_amount: 169393,
-                origin: "api",
-                payment_intent_id: "pi_aJsHfCD2AmR9V5KBvtkW8XY2",
-                payout: null,
-                source: {
-                  id: "card_7EAQrE19W7ESJZkQdoQiy6gj",
-                  type: "card",
-                  brand: "mastercard",
-                  country: "BJ",
-                  last4: "2346",
-                },
-                statement_descriptor: "Paymongo Test Account",
-                status: "paid",
-                tax_amount: 193,
-                metadata: {
-                  customer_number: "42jn1i53",
-                  remarks:
-                    "Customer cannot receive items during weekends or evening",
-                  notes: "Additional packaging. Include free samples",
-                },
-                refunds: [],
-                taxes: [
-                  {
-                    amount: 193,
-                    currency: "PHP",
-                    inclusive: true,
-                    name: "Withholding Tax",
-                    type: "withholding_tax",
-                    value: "200_bps",
-                  },
-                  {
-                    amount: 1157,
-                    currency: "PHP",
-                    inclusive: true,
-                    name: "VAT",
-                    type: "vat",
-                    value: "1200_bps",
-                  },
-                ],
-                available_at: 1671526800,
-                created_at: 1671438226,
-                credited_at: 1671613200,
-                paid_at: 1671438228,
-                updated_at: 1671438228,
-              },
-            },
-          ],
-          payment_intent: {
-            id: "pi_aJsHfCD2AmR9V5KBvtkW8XY2",
-            type: "payment_intent",
-            attributes: {
-              amount: 180000,
-              capture_type: "automatic",
-              client_key:
-                "pi_aJsHfCD2AmR9V5KBvtkW8XY2_client_HBSX2uMBbpapxbPVhsy6zdJz",
-              currency: "PHP",
-              description: "The beanie products.",
-              livemode: true,
-              statement_descriptor: "Paymongo Test Account",
-              status: "succeeded",
-              last_payment_error: null,
-              payment_method_allowed: ["card", "gcash"],
-              payments: [
-                {
-                  id: "pay_gPSJ6SB24SVEa5hH8LrXBtd4",
-                  type: "payment",
-                  attributes: {
-                    access_url: null,
-                    amount: 180000,
-                    balance_transaction_id: "bal_txn_ck7GWJfM19q5YFQKFqo17vbu",
-                    billing: {
-                      address: {
-                        city: "Taguig",
-                        country: "PH",
-                        line1: "Address 1",
-                        line2: "",
-                        postal_code: "1234",
-                        state: "Metro Manila",
-                      },
-                      email: "juan.delacruz@paymongo.com",
-                      name: "Customer Name",
-                      phone: "",
-                    },
-                    currency: "PHP",
-                    description: "The beanie products.",
-                    disputed: false,
-                    external_reference_number: null,
-                    fee: 9000,
-                    foreign_fee: 1800,
-                    livemode: true,
-                    net_amount: 169393,
-                    origin: "api",
-                    payment_intent_id: "pi_aJsHfCD2AmR9V5KBvtkW8XY2",
-                    payout: null,
-                    source: {
-                      id: "card_7EAQrE19W7ESJZkQdoQiy6gj",
-                      type: "card",
-                      brand: "mastercard",
-                      country: "BJ",
-                      last4: "2346",
-                    },
-                    statement_descriptor: "Paymongo Test Account",
-                    status: "paid",
-                    tax_amount: 193,
-                    metadata: {
-                      customer_number: "42jn1i53",
-                      remarks:
-                        "Customer cannot receive items during weekends or evening",
-                      notes: "Additional packaging. Include free samples",
-                    },
-                    refunds: [],
-                    taxes: [
-                      {
-                        amount: 193,
-                        currency: "PHP",
-                        inclusive: true,
-                        name: "Withholding Tax",
-                        type: "withholding_tax",
-                        value: "200_bps",
-                      },
-                      {
-                        amount: 1157,
-                        currency: "PHP",
-                        inclusive: true,
-                        name: "VAT",
-                        type: "vat",
-                        value: "1200_bps",
-                      },
-                    ],
-                    available_at: 1671526800,
-                    created_at: 1671438226,
-                    credited_at: 1671613200,
-                    paid_at: 1671438228,
-                    updated_at: 1671438228,
-                  },
-                },
-              ],
-              next_action: null,
-              payment_method_options: {
-                card: {
-                  request_three_d_secure: "any",
-                  installments: {
-                    enabled: true,
-                  },
-                },
-              },
-              metadata: {
-                remarks:
-                  "Customer cannot receive items during weekends or evening",
-                customer_number: "42jn1i53",
-                notes: "Additional packaging. Include free samples",
-              },
-              setup_future_usage: null,
-              created_at: 1671437933,
-              updated_at: 1671438228,
-            },
-          },
-          payment_method_types: ["card", "gcash", "atome"],
-          reference_number: "m2m39sj43h5lfFSA1sd",
-          send_email_receipt: true,
-          show_description: true,
-          show_line_items: true,
-          status: "active",
-          success_url: "https://google.com",
-          created_at: 1671437933,
-          updated_at: 1671437933,
-          metadata: {
-            notes: "Additional packaging. Include free samples",
-            customer_number: "42jn1i53",
-            remarks: "Customer cannot receive items during weekends or evening",
-          },
-        },
-      },
-      previous_data: {},
-      created_at: 1674197593,
-      updated_at: 1674197593,
-    },
-  },
-};
-export const extractWebhookData = async (req: Request) => {
+
+interface WebhookData {
+  id: string;
+  type: string;
+  attributes: {
+    type: string;
+    livemode: boolean;
+    data: CheckoutSession;
+    previous_data: any;
+    created_at: number;
+    updated_at: number;
+  };
+}
+
+export const extractWebhookData = async (
+  req: Request
+): Promise<WebhookData> => {
   const webhook_data = await req.json();
   const data = webhook_data.data;
   return data;
-};
-
-export const getCheckoutSession = async (id: string) => {
-  const encodedCredentials = Buffer.from(
-    `${process.env.PAYMONGO_SECRET_KEY}:`
-  ).toString("base64");
-  const response = await axios
-    .get(`https://api.paymongo.com/v1/checkout_sessions/${id}`, {
-      headers: {
-        accept: "application/json",
-        "Content-Type": "application/json",
-        authorization: `Basic ${encodedCredentials}`,
-      },
-    })
-    .then(function (response: any) {
-      console.log(response.data);
-      return response.data.data;
-    })
-    .catch(function (error: any) {
-      console.error(error);
-    });
-  return response;
 };

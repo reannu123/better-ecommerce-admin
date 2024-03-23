@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prismadb from "@/lib/prismadb";
-import { sendPaymongo, createOptions, lineItemsProps } from "@/lib/paymongo";
+import { sendPaymongo, createOptions, LineItem } from "@/lib/paymongo";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,7 +34,7 @@ export async function POST(
       },
     });
 
-    const line_items: lineItemsProps[] = products.map((product) => {
+    const line_items: LineItem[] = products.map((product) => {
       return {
         name: product.name,
         amount: Number(product.price) * 100,
@@ -61,13 +61,10 @@ export async function POST(
       line_items,
       success_url: `${process.env.PAYMENT_REDIRECT_SUCCESS}`,
       cancel_url: `${process.env.PAYMENT_REDIRECT_CANCELED}`,
+      reference_number: order.id,
     });
 
     const response = await sendPaymongo(options);
-    console.log(" [CHECKOUT_POST]", response);
-
-    // store checkout session, wait for payment webhook with the checkout session
-    // store order, wait for payment webhook with the order
 
     return NextResponse.json(response, { headers: corsHeaders });
   } catch (error) {
