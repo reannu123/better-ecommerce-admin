@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prismadb from "@/lib/prismadb";
-import { sendPaymongo, createOptions, lineItemsProps } from "@/lib/paymongo";
+import { sendPaymongo, createOptions, LineItem } from "@/lib/paymongo";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +12,10 @@ export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders });
 }
 
-export async function POST(req: Request) {
+export async function POST(
+  req: Request,
+  { params }: { params: { storeId: string } }
+) {
   try {
     const { productIds } = await req.json();
     if (!productIds || productIds.length === 0) {
@@ -31,7 +34,7 @@ export async function POST(req: Request) {
       },
     });
 
-    const line_items: lineItemsProps[] = products.map((product) => {
+    const line_items: LineItem[] = products.map((product) => {
       return {
         name: product.name,
         amount: Number(product.price) * 100,
@@ -41,17 +44,27 @@ export async function POST(req: Request) {
       };
     });
 
+    const order = await prismadb.order.create({
+      data: {
+        storeId: params.storeId,
+        isPaid: false,
+        orderItems: {
+          create: productIds.map((productId: string) => ({
+            product: { connect: { id: productId } },
+            quantity: 1,
+          })),
+        },
+      },
+    });
+
     const options = createOptions({
       line_items,
       success_url: `${process.env.PAYMENT_REDIRECT_SUCCESS}`,
       cancel_url: `${process.env.PAYMENT_REDIRECT_CANCELED}`,
+      reference_number: order.id,
     });
 
     const response = await sendPaymongo(options);
-    console.log(" [CHECKOUT_POST]", response);
-
-    // store checkout session, wait for payment webhook with the checkout session
-    // store order, wait for payment webhook with the order
 
     return NextResponse.json(response, { headers: corsHeaders });
   } catch (error) {
