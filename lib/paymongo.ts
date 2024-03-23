@@ -1,4 +1,5 @@
 import axios from "axios";
+import * as qs from "querystring";
 // convert to base64
 interface RequestOptions {
   line_items?: lineItemsProps[];
@@ -28,13 +29,16 @@ export const sendPaymongo = async (options: any) => {
 };
 
 export const createOptions = (requestOptions: RequestOptions) => {
+  const encodedCredentials = Buffer.from(
+    `${process.env.PAYMONGO_SECRET_KEY}:`
+  ).toString();
   const defaultOptions = {
     method: "POST",
     url: "https://api.paymongo.com/v1/checkout_sessions",
     headers: {
       accept: "application/json",
       "Content-Type": "application/json",
-      authorization: "Basic c2tfdGVzdF9zUXF0c0s0V3JmUXFyYUZtYWN5bld3WGc6",
+      authorization: `Basic ${encodedCredentials}`,
     },
     data: {
       data: {
@@ -358,4 +362,26 @@ export const extractWebhookData = async (req: Request) => {
   const webhook_data = await req.json();
   const data = webhook_data.data;
   return data;
+};
+
+export const getCheckoutSession = async (id: string) => {
+  const encodedCredentials = Buffer.from(
+    `${process.env.PAYMONGO_SECRET_KEY}:`
+  ).toString("base64");
+  const response = await axios
+    .get(`https://api.paymongo.com/v1/checkout_sessions/${id}`, {
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+        authorization: `Basic ${encodedCredentials}`,
+      },
+    })
+    .then(function (response: any) {
+      console.log(response.data);
+      return response.data.data;
+    })
+    .catch(function (error: any) {
+      console.error(error);
+    });
+  return response;
 };
