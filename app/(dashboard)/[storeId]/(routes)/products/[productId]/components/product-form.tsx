@@ -449,7 +449,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                               <FormMessage />
                               <NestedForm
                                 form={form}
-                                register={form.register}
                                 nestIndex={variantIndex}
                               />
                             </CardContent>
@@ -463,7 +462,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   variant={"outline"}
                   type="button"
                   onClick={() =>
-                    appendVariant({ name: "", options: [{ name: "" }] })
+                    appendVariant({
+                      name: "",
+                      options: [{ name: "" }],
+                    })
                   }
                 >
                   Add Variant

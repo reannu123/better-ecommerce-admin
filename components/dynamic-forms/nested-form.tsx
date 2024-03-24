@@ -16,13 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 interface NestedFormProps {
   nestIndex: number;
   form: any;
-  register: any;
 }
-export const NestedForm: React.FC<NestedFormProps> = ({
-  nestIndex,
-  form,
-  register,
-}) => {
+export const NestedForm: React.FC<NestedFormProps> = ({ nestIndex, form }) => {
   const { fields, remove, append } = useFieldArray({
     control: form.control,
     name: `variants.${nestIndex}.options`,
@@ -36,9 +31,7 @@ export const NestedForm: React.FC<NestedFormProps> = ({
       <CardContent className="space-y-4 px-4">
         {fields.map((item, k) => {
           return (
-            <div
-              key={item.id}
-            >
+            <div key={item.id}>
               <FormField
                 control={form.control}
                 name={`variants.${nestIndex}.options.${k}.name`}
