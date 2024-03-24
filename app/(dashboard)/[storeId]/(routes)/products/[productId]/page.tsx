@@ -30,7 +30,19 @@ const ProductPage = async ({
     <div className="flex-col flex items-center justify-center">
       <div className="flex-1 space-y-4 p-8 pt-6 w-5/6 lg:w-3/5">
         <ProductForm
-          initialData={product}
+          initialData={
+            product && {
+              ...product,
+              price: product?.price.toNumber(),
+              variants: product?.variants.map((variant) => ({
+                ...variant,
+                options: variant.options.map((option) => ({
+                  ...option,
+                  price: option.price.toNumber(),
+                })),
+              })),
+            }
+          }
           categories={categories}
         />
       </div>

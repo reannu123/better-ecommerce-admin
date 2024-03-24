@@ -1,6 +1,6 @@
 "use client";
 import * as z from "zod";
-import { Category, Image, Product } from "@prisma/client";
+import { Category, Image, Option, Product, Variant } from "@prisma/client";
 import { FileSpreadsheet, Trash } from "lucide-react";
 import { Heading } from "@/components/ui/heading";
 import { Button } from "@/components/ui/button";
@@ -54,11 +54,15 @@ const formSchema = z.object({
 });
 
 type ProductFormValues = z.infer<typeof formSchema>;
-
+type ProductWithNumberPrice = Omit<Product, "price"> & { price: number };
+type OptionWithNumberPrice = Omit<Option, "price"> & { price: number };
 interface ProductFormProps {
   initialData:
-    | (Product & {
+    | (ProductWithNumberPrice & {
         images: Image[];
+        variants: (Variant & {
+          options: OptionWithNumberPrice[];
+        })[];
       })
     | null;
   categories: Category[];
@@ -89,6 +93,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       ? {
           ...initialData,
           price: parseFloat(String(initialData?.price)),
+          variants: initialData.variants.map((variant) => ({
+            ...variant,
+            options: variant.options.map((option) => ({
+              ...option,
+              price: parseFloat(String(option.price)),
+            })),
+          })),
         }
       : {
           name: "",
