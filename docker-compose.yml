@@ -15,7 +15,7 @@ services:
     container_name: $DB_NAME
     image: mysql:latest
     volumes:
-      - mysql_data:/var/lib/mysql
+      - app_db_data:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
     networks:
@@ -23,7 +23,7 @@ services:
       - default
     restart: always
 volumes:
-  mysql_data:
+  app_db_data:
 networks:
   db-network:
     external: true
