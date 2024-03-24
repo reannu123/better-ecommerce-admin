@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { NestedForm } from "@/components/dynamic-forms/nested-form";
+import { NestedForm } from "@/app/(dashboard)/[storeId]/(routes)/products/[productId]/components/nested-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const formSchema = z.object({
@@ -348,7 +348,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                             <CardHeader className="p-4 pb-0">
                               <FormLabel>Variant Name</FormLabel>
                             </CardHeader>
-                            <CardContent className="space-y-4 px-4">
+                            <CardContent className="space-y-4 px-4 pb-4">
                               <div className="flex items-center space-x-3 ">
                                 <FormControl>
                                   <Input
