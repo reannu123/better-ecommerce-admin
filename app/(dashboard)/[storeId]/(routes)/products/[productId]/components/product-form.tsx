@@ -1,6 +1,6 @@
 "use client";
 import * as z from "zod";
-import { Category, Color, Image, Product, Size } from "@prisma/client";
+import { Category, Image, Product } from "@prisma/client";
 import { FileSpreadsheet, Trash } from "lucide-react";
 import { Heading } from "@/components/ui/heading";
 import { Button } from "@/components/ui/button";
@@ -39,8 +39,6 @@ const formSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1).max(300),
   categoryId: z.string().min(1),
-  sizeId: z.string().min(1),
-  colorId: z.string().min(1),
   price: z.coerce.number().min(1),
   images: z.object({ url: z.string() }).array().min(1),
   isFeatured: z.boolean().default(false).optional(),
@@ -64,15 +62,11 @@ interface ProductFormProps {
       })
     | null;
   categories: Category[];
-  sizes: Size[];
-  colors: Color[];
 }
 
 export const ProductForm: React.FC<ProductFormProps> = ({
   initialData,
   categories,
-  sizes,
-  colors,
 }) => {
   const params = useParams();
   const router = useRouter();
@@ -99,8 +93,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       : {
           name: "",
           description: "",
-          colorId: "",
-          sizeId: "",
           categoryId: "",
           price: 0,
           images: [],
@@ -292,78 +284,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                           value={category.id}
                         >
                           {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="sizeId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Size</FormLabel>
-                  <Select
-                    disabled={loading}
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          defaultValue={field.value}
-                          placeholder="Select a Size"
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-
-                    <SelectContent>
-                      {sizes.map((size) => (
-                        <SelectItem
-                          key={size.id}
-                          value={size.id}
-                        >
-                          {size.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="colorId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Color</FormLabel>
-                  <Select
-                    disabled={loading}
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          defaultValue={field.value}
-                          placeholder="Select a Color"
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-
-                    <SelectContent>
-                      {colors.map((color) => (
-                        <SelectItem
-                          key={color.id}
-                          value={color.id}
-                        >
-                          {color.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

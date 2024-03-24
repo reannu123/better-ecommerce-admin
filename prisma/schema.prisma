@@ -17,8 +17,6 @@ model Store {
 	userId 		String
   billboards Billboard[] @relation("StoreToBillboard")
   categories Category[] @relation("StoretoCategory")
-  sizes Size[] @relation("StoreToSize")
-  colors Color[] @relation("StoreToColor")
   products Product[] @relation("StoretoProduct")
   orders Order[] @relation("StoreToOrder")
 	createdAt DateTime @default(now()) 
@@ -53,32 +51,6 @@ model Category{
   @@index([billboardId])
 }
 
-model Size{
-  id      String  @id @default(uuid())
-  storeId String
-  store   Store @relation("StoreToSize", fields: [storeId], references: [id])
-  name    String
-  value   String
-  products Product[] @relation("SizetoProduct")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index ([storeId])
-}
-
-model Color{
-  id      String  @id @default(uuid())
-  storeId String
-  store   Store @relation("StoreToColor", fields: [storeId], references: [id])
-  name    String
-  value   String
-  products Product[] @relation("ColortoProduct")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index ([storeId])
-}
-
 model Product{
   id        String  @id @default(uuid())
   storeId   String
@@ -90,10 +62,6 @@ model Product{
   price     Decimal
   isFeatured Boolean @default(false)
   isArchived Boolean @default(false)
-  sizeId    String
-  size      Size @relation("SizetoProduct", fields: [sizeId], references: [id])
-  colorId   String
-  color     Color @relation("ColortoProduct",fields: [colorId], references: [id])
   variants  Variant[]
   images    Image[] 
   orderItems OrderItem[]
@@ -102,8 +70,6 @@ model Product{
 
   @@index([storeId])
   @@index([categoryId])
-  @@index([sizeId])
-  @@index([colorId])
 }
 
 model Variant {
