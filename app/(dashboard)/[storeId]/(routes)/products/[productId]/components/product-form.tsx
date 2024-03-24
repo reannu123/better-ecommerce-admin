@@ -416,7 +416,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             />
             <div className="col-span-1">
               <h3 className="text-sm font-medium ">Product Variants</h3>
-              <div className="space-y-4 px-0 py-2">
+              <div className="space-y-3 px-0 py-2">
                 {variantFields.map((variantField, variantIndex) => {
                   return (
                     <Card key={variantField.id}>
@@ -428,7 +428,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                             <CardHeader className="p-4 pb-0">
                               <FormLabel>Variant Name</FormLabel>
                             </CardHeader>
-                            <CardContent className="space-y-4 px-4 py-0">
+                            <CardContent className="space-y-4 px-4">
                               <div className="flex items-center space-x-3 ">
                                 <FormControl>
                                   <Input
@@ -445,13 +445,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                                   <Trash className="w-4 h-4" />
                                 </Button>
                               </div>
+
+                              <FormMessage />
                               <NestedForm
                                 form={form}
                                 register={form.register}
                                 nestIndex={variantIndex}
                               />
                             </CardContent>
-                            <FormMessage />
                           </FormItem>
                         )}
                       />
