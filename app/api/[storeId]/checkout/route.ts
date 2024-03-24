@@ -29,8 +29,6 @@ export async function POST(
       include: {
         images: true,
         category: true,
-        size: true,
-        color: true,
       },
     });
 
