@@ -34,7 +34,7 @@ export const NestedForm: React.FC<NestedFormProps> = ({ nestIndex, form }) => {
             <div key={item.id}>
               <FormField
                 control={form.control}
-                name={`variants.${nestIndex}.options.${k}.name`}
+                name={`variants.${nestIndex}.options.${k}.value`}
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex space-x-3">
@@ -64,7 +64,7 @@ export const NestedForm: React.FC<NestedFormProps> = ({ nestIndex, form }) => {
         <Button
           variant={"default"}
           type="button"
-          onClick={() => append({ name: "" })}
+          onClick={() => append({ value: "" })}
           className="w-full"
         >
           <Plus className="w-4 h-4" />

@@ -12,6 +12,11 @@ const ProductPage = async ({
     },
     include: {
       images: true,
+      variants: {
+        include: {
+          options: true,
+        },
+      },
     },
   });
 

@@ -43,6 +43,7 @@ export async function PATCH(
       images,
       isFeatured,
       isArchived,
+      variants,
     } = body;
 
     if (!userId) {
@@ -65,6 +66,10 @@ export async function PATCH(
 
     if (!categoryId) {
       return new NextResponse("Category id is required", { status: 400 });
+    }
+
+    if (!variants) {
+      return new NextResponse("Variants array is required", { status: 400 });
     }
 
     if (!params.productId) {
@@ -95,6 +100,9 @@ export async function PATCH(
         images: {
           deleteMany: {},
         },
+        variants: {
+          deleteMany: {},
+        },
         isFeatured,
         isArchived,
       },
@@ -111,10 +119,26 @@ export async function PATCH(
             data: images.map((image: string) => image),
           },
         },
+        variants: {
+          create: variants.map((variant: any) => ({
+            title: variant.title,
+            options: {
+              create: variant.options.map((option: { value: string }) => ({
+                value: option.value,
+                price: price,
+              })),
+            },
+          })),
+        },
       },
       include: {
         images: true,
         category: true,
+        variants: {
+          include: {
+            options: true,
+          },
+        },
       },
     });
 

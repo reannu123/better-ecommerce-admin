@@ -46,8 +46,8 @@ const formSchema = z.object({
   variants: z
     .array(
       z.object({
-        name: z.string().min(1),
-        options: z.array(z.object({ name: z.string().min(1) })).min(1),
+        title: z.string().min(1),
+        options: z.array(z.object({ value: z.string().min(1) })).min(1),
       })
     )
     .min(1),
@@ -98,7 +98,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           images: [],
           isFeatured: false,
           isArchived: false,
-          variants: [{ name: "", options: [{ name: "" }] }],
+          variants: [{ title: "", options: [{ value: "" }] }],
         },
   });
 
@@ -114,18 +114,18 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const onSubmit = async (data: ProductFormValues) => {
     try {
       console.log(data);
-      // setLoading(true);
-      // if (initialData) {
-      //   await axios.patch(
-      //     `/api/${params.storeId}/products/${params.productId}`,
-      //     data
-      //   );
-      // } else {
-      //   await axios.post(`/api/${params.storeId}/products`, data);
-      // }
-      // router.push(`/${params.storeId}/products`);
-      // router.refresh();
-      // toast.success(toastMessage);
+      setLoading(true);
+      if (initialData) {
+        await axios.patch(
+          `/api/${params.storeId}/products/${params.productId}`,
+          data
+        );
+      } else {
+        await axios.post(`/api/${params.storeId}/products`, data);
+      }
+      router.push(`/${params.storeId}/products`);
+      router.refresh();
+      toast.success(toastMessage);
     } catch (error) {
       toast.error(`Failed to save changes. ${error}`);
     } finally {
@@ -342,7 +342,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Card key={variantField.id}>
                       <FormField
                         control={form.control}
-                        name={`variants.${variantIndex}.name`}
+                        name={`variants.${variantIndex}.title`}
                         render={({ field }) => (
                           <FormItem>
                             <CardHeader className="p-4 pb-0">
@@ -383,8 +383,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   type="button"
                   onClick={() =>
                     appendVariant({
-                      name: "",
-                      options: [{ name: "" }],
+                      title: "",
+                      options: [{ value: "" }],
                     })
                   }
                 >
