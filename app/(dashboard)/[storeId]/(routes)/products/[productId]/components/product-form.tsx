@@ -1,11 +1,11 @@
 "use client";
 import * as z from "zod";
 import { Category, Color, Image, Product, Size } from "@prisma/client";
-import { Trash } from "lucide-react";
+import { FileSpreadsheet, Trash } from "lucide-react";
 import { Heading } from "@/components/ui/heading";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import { NestedForm } from "@/components/dynamic-forms/nested-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -43,6 +45,14 @@ const formSchema = z.object({
   images: z.object({ url: z.string() }).array().min(1),
   isFeatured: z.boolean().default(false).optional(),
   isArchived: z.boolean().default(false).optional(),
+  variants: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        options: z.array(z.object({ name: z.string().min(1) })).min(1),
+      })
+    )
+    .min(1),
 });
 
 type ProductFormValues = z.infer<typeof formSchema>;
@@ -96,23 +106,34 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           images: [],
           isFeatured: false,
           isArchived: false,
+          variants: [{ name: "", options: [{ name: "" }] }],
         },
+  });
+
+  const {
+    fields: variantFields,
+    append: appendVariant,
+    remove: removeVariant,
+  } = useFieldArray({
+    control: form.control,
+    name: "variants",
   });
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
-      setLoading(true);
-      if (initialData) {
-        await axios.patch(
-          `/api/${params.storeId}/products/${params.productId}`,
-          data
-        );
-      } else {
-        await axios.post(`/api/${params.storeId}/products`, data);
-      }
-      router.push(`/${params.storeId}/products`);
-      router.refresh();
-      toast.success(toastMessage);
+      console.log(data);
+      // setLoading(true);
+      // if (initialData) {
+      //   await axios.patch(
+      //     `/api/${params.storeId}/products/${params.productId}`,
+      //     data
+      //   );
+      // } else {
+      //   await axios.post(`/api/${params.storeId}/products`, data);
+      // }
+      // router.push(`/${params.storeId}/products`);
+      // router.refresh();
+      // toast.success(toastMessage);
     } catch (error) {
       toast.error(`Failed to save changes. ${error}`);
     } finally {
@@ -393,7 +414,63 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 </FormItem>
               )}
             />
+            <div className="col-span-1">
+              <h3 className="text-sm font-medium ">Product Variants</h3>
+              <div className="space-y-4 px-0 py-2">
+                {variantFields.map((variantField, variantIndex) => {
+                  return (
+                    <Card key={variantField.id}>
+                      <FormField
+                        control={form.control}
+                        name={`variants.${variantIndex}.name`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <CardHeader className="p-4 pb-0">
+                              <FormLabel>Variant Name</FormLabel>
+                            </CardHeader>
+                            <CardContent className="space-y-4 px-4 py-0">
+                              <div className="flex items-center space-x-3 ">
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    disabled={loading}
+                                    placeholder="Size"
+                                  />
+                                </FormControl>
+                                <Button
+                                  onClick={() => removeVariant(variantIndex)}
+                                  type="button"
+                                  variant="destructive"
+                                >
+                                  <Trash className="w-4 h-4" />
+                                </Button>
+                              </div>
+                              <NestedForm
+                                form={form}
+                                register={form.register}
+                                nestIndex={variantIndex}
+                              />
+                            </CardContent>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </Card>
+                  );
+                })}
+                <Button
+                  variant={"outline"}
+                  type="button"
+                  onClick={() =>
+                    appendVariant({ name: "", options: [{ name: "" }] })
+                  }
+                >
+                  Add Variant
+                </Button>
+              </div>
+            </div>
           </div>
+
           <Button
             type="submit"
             disabled={loading}

@@ -94,6 +94,8 @@ model Product{
   size      Size @relation("SizetoProduct", fields: [sizeId], references: [id])
   colorId   String
   color     Color @relation("ColortoProduct",fields: [colorId], references: [id])
+  variants  Variant[]
+  options   Option[]
   images    Image[] 
   orderItems OrderItem[]
   createdAt DateTime @default(now())
@@ -103,6 +105,34 @@ model Product{
   @@index([categoryId])
   @@index([sizeId])
   @@index([colorId])
+}
+
+model Variant {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  title     String
+  options   Option[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+}
+
+model Option {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  variantId String
+  variant   Variant  @relation(fields: [variantId], references: [id])
+  name      String
+  value     String
+  price     Decimal
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([variantId])
 }
 
 model Image {
