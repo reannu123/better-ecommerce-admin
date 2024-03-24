@@ -17,6 +17,7 @@ export async function POST(
       images,
       isFeatured,
       isArchived,
+      variants,
     } = body;
 
     if (!userId) {
@@ -39,6 +40,10 @@ export async function POST(
 
     if (!categoryId) {
       return new NextResponse("Category id is required", { status: 400 });
+    }
+
+    if (!variants) {
+      return new NextResponse("Variants array is required", { status: 400 });
     }
 
     if (!params.storeId) {
@@ -69,6 +74,17 @@ export async function POST(
           createMany: {
             data: [...images.map((image: { url: string }) => image)],
           },
+        },
+        variants: {
+          create: variants.map((variant: any) => ({
+            title: variant.title,
+            options: {
+              create: variant.options.map((option: { value: string }) => ({
+                value: option.value,
+                price: price,
+              })),
+            },
+          })),
         },
       },
     });
