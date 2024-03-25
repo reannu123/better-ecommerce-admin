@@ -14,8 +14,6 @@ const ProductsPage: React.FC<ProductsPageProps> = async ({ params }) => {
     },
     include: {
       category: true,
-      size: true,
-      color: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -29,8 +27,6 @@ const ProductsPage: React.FC<ProductsPageProps> = async ({ params }) => {
     isArchived: product.isArchived,
     price: formatter.format(product.price.toNumber()),
     category: product.category.name,
-    size: product.size.value,
-    color: product.color.value,
     createdAt: format(product.createdAt, "yyyy-MM-dd"),
   }));
 

@@ -2,14 +2,13 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import CellAction from "./cell-action";
+import { Badge } from "@/components/ui/badge";
 
 export type ProductColumn = {
   id: string;
   name: string;
   price: string;
   category: string;
-  size: string;
-  color: string;
   isFeatured: boolean;
   isArchived: boolean;
   createdAt: string;
@@ -23,10 +22,22 @@ export const columns: ColumnDef<ProductColumn>[] = [
   {
     accessorKey: "isFeatured",
     header: "Featured",
+    cell: ({ row }) =>
+      row.original.isFeatured ? (
+        <Badge>Yes</Badge>
+      ) : (
+        <Badge variant={"destructive"}>No</Badge>
+      ),
   },
   {
     accessorKey: "isArchived",
     header: "Archived",
+    cell: ({ row }) =>
+      row.original.isArchived ? (
+        <Badge variant={"destructive"}>Yes</Badge>
+      ) : (
+        <Badge>No</Badge>
+      ),
   },
   {
     accessorKey: "price",
@@ -35,23 +46,6 @@ export const columns: ColumnDef<ProductColumn>[] = [
   {
     accessorKey: "category",
     header: "Category",
-  },
-  {
-    accessorKey: "size",
-    header: "Size",
-  },
-  {
-    accessorKey: "color",
-    header: "Color",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-x-2">
-        {row.original.color}
-        <div
-          className="h-6 w-6 rounded-full border"
-          style={{ backgroundColor: row.original.color }}
-        />
-      </div>
-    ),
   },
   {
     accessorKey: "createdAt",

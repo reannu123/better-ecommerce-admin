@@ -17,8 +17,6 @@ model Store {
 	userId 		String
   billboards Billboard[] @relation("StoreToBillboard")
   categories Category[] @relation("StoretoCategory")
-  sizes Size[] @relation("StoreToSize")
-  colors Color[] @relation("StoreToColor")
   products Product[] @relation("StoretoProduct")
   orders Order[] @relation("StoreToOrder")
 	createdAt DateTime @default(now()) 
@@ -53,32 +51,6 @@ model Category{
   @@index([billboardId])
 }
 
-model Size{
-  id      String  @id @default(uuid())
-  storeId String
-  store   Store @relation("StoreToSize", fields: [storeId], references: [id])
-  name    String
-  value   String
-  products Product[] @relation("SizetoProduct")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index ([storeId])
-}
-
-model Color{
-  id      String  @id @default(uuid())
-  storeId String
-  store   Store @relation("StoreToColor", fields: [storeId], references: [id])
-  name    String
-  value   String
-  products Product[] @relation("ColortoProduct")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index ([storeId])
-}
-
 model Product{
   id        String  @id @default(uuid())
   storeId   String
@@ -86,22 +58,57 @@ model Product{
   categoryId String
   category  Category @relation("CategorytoProduct", fields: [categoryId], references: [id])
   name      String
+  description String @db.VarChar(1000) @default("")
   price     Decimal
   isFeatured Boolean @default(false)
   isArchived Boolean @default(false)
-  sizeId    String
-  size      Size @relation("SizetoProduct", fields: [sizeId], references: [id])
-  colorId   String
-  color     Color @relation("ColortoProduct",fields: [colorId], references: [id])
+  variants  Variant[]
   images    Image[] 
-  orderItems OrderItem[]
+  productVariants ProductVariant[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([storeId])
   @@index([categoryId])
-  @@index([sizeId])
-  @@index([colorId])
+}
+
+model ProductVariant {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  options   Option[]
+  price     Decimal
+  availability Int
+  orderItems OrderItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+}
+
+model Variant {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  title     String
+  options   Option[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+}
+
+model Option {
+  id        String   @id @default(uuid())
+  variantId String
+  variant   Variant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  productVariants ProductVariant[]
+  value     String
+  price     Decimal
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([variantId])
 }
 
 model Image {
@@ -133,12 +140,12 @@ model OrderItem{
   id        String  @id @default(uuid())
   orderId   String
   order     Order @relation(fields: [orderId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
+  productVariantId String
+  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
   quantity  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([orderId])
-  @@index([productId])
+  @@index([productVariantId])
 }
