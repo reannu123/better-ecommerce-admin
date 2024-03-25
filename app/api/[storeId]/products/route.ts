@@ -89,7 +89,59 @@ export async function POST(
       },
     });
 
-    return NextResponse.json(product);
+    // Get variants from the created product
+
+    const productWithVariants = await prismadb.product.findFirst({
+      where: {
+        id: product.id,
+      },
+      include: {
+        variants: {
+          include: {
+            options: true,
+          },
+        },
+      },
+    });
+
+    if (!productWithVariants) {
+      return new NextResponse("Product not found", { status: 404 });
+    }
+    const updatedVariants = productWithVariants.variants;
+
+    const optionCombinations = updatedVariants.reduce(
+      (combinations: any[], variant: { options: any[] }) => {
+        const newCombinations: any[] = [];
+        variant.options.forEach((option: any) => {
+          if (combinations.length === 0) {
+            newCombinations.push([option]);
+          } else {
+            combinations.forEach((combination: any) => {
+              newCombinations.push([...combination, option]);
+            });
+          }
+        });
+        return newCombinations;
+      },
+      []
+    );
+
+    const productWithProductVariants = await prismadb.product.update({
+      where: { id: product.id },
+      data: {
+        productVariants: {
+          create: optionCombinations.map((combination: any[]) => ({
+            options: {
+              connect: combination.map((option) => ({ id: option.id })),
+            },
+            price: price,
+            availability: 999,
+          })),
+        },
+      },
+    });
+
+    return NextResponse.json(productWithProductVariants);
   } catch (error) {
     console.log(" [PRODUCTS_POST]", error);
     return new NextResponse("Internal error", { status: 500 });
@@ -119,6 +171,22 @@ export async function GET(
       include: {
         images: true,
         category: true,
+        variants: {
+          include: {
+            options: true,
+          },
+        },
+        productVariants: {
+          include: {
+            product: {
+              include: {
+                images: true,
+                variants: true,
+              },
+            },
+            options: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",

@@ -17,6 +17,11 @@ const ProductPage = async ({
           options: true,
         },
       },
+      productVariants: {
+        include: {
+          options: true,
+        },
+      },
     },
   });
 
@@ -41,6 +46,15 @@ const ProductPage = async ({
                   price: option.price.toNumber(),
                 })),
               })),
+              productVariants: product?.productVariants.map(
+                (productVariant) => ({
+                  ...productVariant,
+                  options: productVariant.options.map((option) => ({
+                    ...option,
+                    price: option.price.toNumber(),
+                  })),
+                })
+              ),
             }
           }
           categories={categories}

@@ -18,6 +18,21 @@ export async function GET(
       include: {
         images: true,
         category: true,
+        variants: {
+          include: {
+            options: true,
+          },
+        },
+        productVariants: {
+          include: {
+            product: {
+              include: {
+                images: true,
+              },
+            },
+            options: true,
+          },
+        },
       },
     });
 
@@ -87,6 +102,35 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 403 });
     }
 
+    // Fetch the product with its variants and options
+    const oldProduct = await prismadb.product.findUnique({
+      where: {
+        id: params.productId,
+        storeId: params.storeId,
+      },
+      include: {
+        variants: {
+          include: {
+            options: true,
+          },
+        },
+      },
+    });
+
+    // Delete each variant's options
+    if (oldProduct) {
+      for (const variant of oldProduct.variants) {
+        await prismadb.variant.update({
+          where: { id: variant.id },
+          data: {
+            options: {
+              deleteMany: {},
+            },
+          },
+        });
+      }
+    }
+
     await prismadb.product.update({
       where: {
         id: params.productId,
@@ -101,6 +145,9 @@ export async function PATCH(
           deleteMany: {},
         },
         variants: {
+          deleteMany: {},
+        },
+        productVariants: {
           deleteMany: {},
         },
         isFeatured,
@@ -142,7 +189,57 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json(product);
+    const productWithVariants = await prismadb.product.findFirst({
+      where: {
+        id: product.id,
+      },
+      include: {
+        variants: {
+          include: {
+            options: true,
+          },
+        },
+      },
+    });
+
+    if (!productWithVariants) {
+      return new NextResponse("Product not found", { status: 404 });
+    }
+    const updatedVariants = productWithVariants.variants;
+
+    const optionCombinations = updatedVariants.reduce(
+      (combinations: any[], variant: { options: any[] }) => {
+        const newCombinations: any[] = [];
+        variant.options.forEach((option: any) => {
+          if (combinations.length === 0) {
+            newCombinations.push([option]);
+          } else {
+            combinations.forEach((combination: any) => {
+              newCombinations.push([...combination, option]);
+            });
+          }
+        });
+        return newCombinations;
+      },
+      []
+    );
+
+    const productWithProductVariants = await prismadb.product.update({
+      where: { id: product.id },
+      data: {
+        productVariants: {
+          create: optionCombinations.map((combination: any[]) => ({
+            options: {
+              connect: combination.map((option) => ({ id: option.id })),
+            },
+            price: price,
+            availability: 999,
+          })),
+        },
+      },
+    });
+
+    return NextResponse.json(productWithProductVariants);
   } catch (error) {
     console.log("[PRODUCT_PATCH]", error);
     return new NextResponse("Internal error", { status: 500 });
