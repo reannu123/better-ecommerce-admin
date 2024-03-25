@@ -25,7 +25,9 @@ export async function POST(req: Request) {
       },
     });
 
-    const productIds = order.orderItems.map((orderItem) => orderItem.productId);
+    const productIds = order.orderItems.map(
+      (orderItem) => orderItem.productVariantId
+    );
 
     await prismadb.product.updateMany({
       where: { id: { in: productIds } },
