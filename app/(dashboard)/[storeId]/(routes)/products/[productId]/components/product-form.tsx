@@ -1,6 +1,13 @@
 "use client";
 import * as z from "zod";
-import { Category, Image, Option, Product, Variant } from "@prisma/client";
+import {
+  Category,
+  Image,
+  Option,
+  Product,
+  Variant,
+  ProductVariant,
+} from "@prisma/client";
 import { FileSpreadsheet, Trash } from "lucide-react";
 import { Heading } from "@/components/ui/heading";
 import { Button } from "@/components/ui/button";
@@ -61,6 +68,9 @@ interface ProductFormProps {
     | (ProductWithNumberPrice & {
         images: Image[];
         variants: (Variant & {
+          options: OptionWithNumberPrice[];
+        })[];
+        productVariants: (ProductVariant & {
           options: OptionWithNumberPrice[];
         })[];
       })
@@ -403,8 +413,41 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 </Button>
               </div>
             </div>
+            {initialData?.productVariants && (
+              <div className="col-span-1">
+                <h3 className="text-sm font-medium ">Product Variants</h3>
+                <div className="space-y-3 px-0 py-2">
+                  {initialData.productVariants.map(
+                    (productVariant, productVariantIndex) => {
+                      return (
+                        <Card key={productVariant.id}>
+                          <CardHeader className="p-4 pb-0">
+                            <CardTitle>{productVariant.productId}</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4 px-4 pb-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              {productVariant.options.map(
+                                (option, optionIndex) => {
+                                  return (
+                                    <Card key={option.id}>
+                                      <CardContent className="flex items-center space-x-3">
+                                        <CardTitle>{option.value}</CardTitle>
+                                        <CardTitle>${option.price}</CardTitle>
+                                      </CardContent>
+                                    </Card>
+                                  );
+                                }
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-
           <Button
             type="submit"
             disabled={loading}

@@ -14,7 +14,7 @@ export const getGraphRevenue = async (storeId: string) => {
     include: {
       orderItems: {
         include: {
-          product: true,
+          productVariant: true,
         },
       },
     },
@@ -25,7 +25,7 @@ export const getGraphRevenue = async (storeId: string) => {
   paidOrders.forEach((order) => {
     const month = new Date(order.createdAt).getMonth();
     const orderTotal = order.orderItems.reduce((orderSum, item) => {
-      return orderSum + item.product.price.toNumber();
+      return orderSum + item.productVariant.price.toNumber();
     }, 0);
 
     if (!monthlyRevenue[month]) {
