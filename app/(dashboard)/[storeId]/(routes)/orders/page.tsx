@@ -39,8 +39,12 @@ const OrdersPage: React.FC<OrdersPageProps> = async ({ params }) => {
       .map((orderItem) => orderItem.productVariant.product.name)
       .join(", "),
     variant: order.orderItems
-      .map((orderItem) => orderItem.productVariant.options.map((option) => option.value).join(", "))
-      .join(", "),
+      .map((orderItem) =>
+        orderItem.productVariant.options
+          .map((option) => option.value)
+          .join(", ")
+      )
+      .join(" | "),
     totalPrice: formatter.format(
       order.orderItems.reduce((total, order) => {
         return total + Number(order.productVariant.price);
