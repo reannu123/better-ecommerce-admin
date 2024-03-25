@@ -1,11 +1,18 @@
 "use client";
 import * as z from "zod";
-import { Category, Color, Image, Product, Size } from "@prisma/client";
-import { Trash } from "lucide-react";
+import {
+  Category,
+  Image,
+  Option,
+  Product,
+  Variant,
+  ProductVariant,
+} from "@prisma/client";
+import { FileSpreadsheet, Trash } from "lucide-react";
 import { Heading } from "@/components/ui/heading";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -31,36 +38,47 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { NestedForm } from "@/app/(dashboard)/[storeId]/(routes)/products/[productId]/components/nested-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const formSchema = z.object({
   name: z.string().min(1),
+  description: z.string().min(1).max(300),
   categoryId: z.string().min(1),
-  sizeId: z.string().min(1),
-  colorId: z.string().min(1),
   price: z.coerce.number().min(1),
   images: z.object({ url: z.string() }).array().min(1),
   isFeatured: z.boolean().default(false).optional(),
   isArchived: z.boolean().default(false).optional(),
+  variants: z.array(
+    z.object({
+      title: z.string().min(1),
+      options: z.array(z.object({ value: z.string().min(1) })).min(1),
+    })
+  ),
 });
 
 type ProductFormValues = z.infer<typeof formSchema>;
-
+type ProductWithNumberPrice = Omit<Product, "price"> & { price: number };
+type OptionWithNumberPrice = Omit<Option, "price"> & { price: number };
 interface ProductFormProps {
   initialData:
-    | (Product & {
+    | (ProductWithNumberPrice & {
         images: Image[];
+        variants: (Variant & {
+          options: OptionWithNumberPrice[];
+        })[];
+        productVariants: (ProductVariant & {
+          options: OptionWithNumberPrice[];
+        })[];
       })
     | null;
   categories: Category[];
-  sizes: Size[];
-  colors: Color[];
 }
 
 export const ProductForm: React.FC<ProductFormProps> = ({
   initialData,
   categories,
-  sizes,
-  colors,
 }) => {
   const params = useParams();
   const router = useRouter();
@@ -83,21 +101,38 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       ? {
           ...initialData,
           price: parseFloat(String(initialData?.price)),
+          variants: initialData.variants.map((variant) => ({
+            ...variant,
+            options: variant.options.map((option) => ({
+              ...option,
+              price: parseFloat(String(option.price)),
+            })),
+          })),
         }
       : {
           name: "",
-          colorId: "",
-          sizeId: "",
+          description: "",
           categoryId: "",
           price: 0,
           images: [],
           isFeatured: false,
           isArchived: false,
+          variants: [{ title: "", options: [{ value: "" }] }],
         },
+  });
+
+  const {
+    fields: variantFields,
+    append: appendVariant,
+    remove: removeVariant,
+  } = useFieldArray({
+    control: form.control,
+    name: "variants",
   });
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
+      console.log(data);
       setLoading(true);
       if (initialData) {
         await axios.patch(
@@ -187,7 +222,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               </FormItem>
             )}
           />
-          <div className="grid grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-2 grid-cols-1 gap-8">
             <FormField
               control={form.control}
               name="name"
@@ -225,6 +260,23 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             />
             <FormField
               control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      disabled={loading}
+                      placeholder="Type a description for your product"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="categoryId"
               render={({ field }) => (
                 <FormItem>
@@ -251,78 +303,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                           value={category.id}
                         >
                           {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="sizeId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Size</FormLabel>
-                  <Select
-                    disabled={loading}
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          defaultValue={field.value}
-                          placeholder="Select a Size"
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-
-                    <SelectContent>
-                      {sizes.map((size) => (
-                        <SelectItem
-                          key={size.id}
-                          value={size.id}
-                        >
-                          {size.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="colorId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Color</FormLabel>
-                  <Select
-                    disabled={loading}
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          defaultValue={field.value}
-                          placeholder="Select a Color"
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-
-                    <SelectContent>
-                      {colors.map((color) => (
-                        <SelectItem
-                          key={color.id}
-                          value={color.id}
-                        >
-                          {color.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -373,6 +353,64 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 </FormItem>
               )}
             />
+            <div className="col-span-1">
+              <h3 className="text-sm font-medium ">Product Variants</h3>
+              <div className="space-y-3 px-0 py-2">
+                {variantFields.map((variantField, variantIndex) => {
+                  return (
+                    <Card key={variantField.id}>
+                      <FormField
+                        control={form.control}
+                        name={`variants.${variantIndex}.title`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <CardHeader className="p-4 pb-0">
+                              <FormLabel>Variant Name</FormLabel>
+                            </CardHeader>
+                            <CardContent className="space-y-4 px-4 pb-4">
+                              <div className="flex items-center space-x-3 ">
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    disabled={loading}
+                                    placeholder="Size"
+                                  />
+                                </FormControl>
+                                <Button
+                                  onClick={() => removeVariant(variantIndex)}
+                                  type="button"
+                                  variant="destructive"
+                                >
+                                  <Trash className="w-4 h-4" />
+                                </Button>
+                              </div>
+
+                              <FormMessage />
+                              <NestedForm
+                                form={form}
+                                nestIndex={variantIndex}
+                              />
+                            </CardContent>
+                          </FormItem>
+                        )}
+                      />
+                    </Card>
+                  );
+                })}
+                <Button
+                  variant={"outline"}
+                  type="button"
+                  onClick={() =>
+                    appendVariant({
+                      title: "",
+                      options: [{ value: "" }],
+                    })
+                  }
+                >
+                  Add Variant
+                </Button>
+              </div>
+            </div>
           </div>
           <Button
             type="submit"

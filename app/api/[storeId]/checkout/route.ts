@@ -18,29 +18,33 @@ export async function POST(
 ) {
   try {
     const { productIds } = await req.json();
+
     if (!productIds || productIds.length === 0) {
       return new NextResponse("Empty checkout, product ids are required", {
         status: 400,
       });
     }
 
-    const products = await prismadb.product.findMany({
+    const productVariants = await prismadb.productVariant.findMany({
       where: { id: { in: productIds } },
       include: {
-        images: true,
-        category: true,
-        size: true,
-        color: true,
+        product: {
+          include: {
+            images: true,
+            category: true,
+          },
+        },
+        options: true,
       },
     });
 
-    const line_items: LineItem[] = products.map((product) => {
+    const line_items: LineItem[] = productVariants.map((productVariant) => {
       return {
-        name: product.name,
-        amount: Number(product.price) * 100,
+        name: productVariant.product.name,
+        amount: Number(productVariant.price) * 100,
         quantity: 1,
         currency: "PHP",
-        images: product.images.map((image) => image.url),
+        images: productVariant.product.images.map((image) => image.url),
       };
     });
 
@@ -50,7 +54,7 @@ export async function POST(
         isPaid: false,
         orderItems: {
           create: productIds.map((productId: string) => ({
-            product: { connect: { id: productId } },
+            productVariant: { connect: { id: productId } },
             quantity: 1,
           })),
         },
@@ -65,7 +69,6 @@ export async function POST(
     });
 
     const response = await sendPaymongo(options);
-
     return NextResponse.json(response, { headers: corsHeaders });
   } catch (error) {
     console.log(" [CHECKOUT_POST]", error);

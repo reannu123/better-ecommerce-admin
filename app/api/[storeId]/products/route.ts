@@ -11,13 +11,13 @@ export async function POST(
     const body = await req.json();
     const {
       name,
+      description,
       price,
       categoryId,
-      colorId,
-      sizeId,
       images,
       isFeatured,
       isArchived,
+      variants,
     } = body;
 
     if (!userId) {
@@ -42,12 +42,8 @@ export async function POST(
       return new NextResponse("Category id is required", { status: 400 });
     }
 
-    if (!sizeId) {
-      return new NextResponse("Size id is required", { status: 400 });
-    }
-
-    if (!colorId) {
-      return new NextResponse("Color id is required", { status: 400 });
+    if (!variants) {
+      return new NextResponse("Variants array is required", { status: 400 });
     }
 
     if (!params.storeId) {
@@ -68,10 +64,9 @@ export async function POST(
     const product = await prismadb.product.create({
       data: {
         name,
+        description,
         price,
         categoryId,
-        colorId,
-        sizeId,
         isFeatured,
         isArchived,
         storeId: params.storeId,
@@ -80,10 +75,84 @@ export async function POST(
             data: [...images.map((image: { url: string }) => image)],
           },
         },
+        variants: {
+          create: variants.map((variant: any) => ({
+            title: variant.title,
+            options: {
+              create: variant.options.map((option: { value: string }) => ({
+                value: option.value,
+                price: price,
+              })),
+            },
+          })),
+        },
       },
     });
 
-    return NextResponse.json(product);
+    // Get variants from the created product
+
+    const productWithVariants = await prismadb.product.findFirst({
+      where: {
+        id: product.id,
+      },
+      include: {
+        variants: {
+          include: {
+            options: true,
+          },
+        },
+      },
+    });
+
+    if (!productWithVariants) {
+      const productWithProductVariants = await prismadb.product.update({
+        where: { id: product.id },
+        data: {
+          productVariants: {
+            create: {
+              price: price,
+              availability: 888,
+            },
+          },
+        },
+      });
+      return NextResponse.json(productWithProductVariants);
+    }
+    const updatedVariants = productWithVariants.variants;
+
+    const optionCombinations = updatedVariants.reduce(
+      (combinations: any[], variant: { options: any[] }) => {
+        const newCombinations: any[] = [];
+        variant.options.forEach((option: any) => {
+          if (combinations.length === 0) {
+            newCombinations.push([option]);
+          } else {
+            combinations.forEach((combination: any) => {
+              newCombinations.push([...combination, option]);
+            });
+          }
+        });
+        return newCombinations;
+      },
+      []
+    );
+
+    const productWithProductVariants = await prismadb.product.update({
+      where: { id: product.id },
+      data: {
+        productVariants: {
+          create: optionCombinations.map((combination: any[]) => ({
+            options: {
+              connect: combination.map((option) => ({ id: option.id })),
+            },
+            price: price,
+            availability: 999,
+          })),
+        },
+      },
+    });
+
+    return NextResponse.json(productWithProductVariants);
   } catch (error) {
     console.log(" [PRODUCTS_POST]", error);
     return new NextResponse("Internal error", { status: 500 });
@@ -97,8 +166,6 @@ export async function GET(
   try {
     const { searchParams } = new URL(req.url);
     const categoryId = searchParams.get("categoryId") || undefined;
-    const colorId = searchParams.get("colorId") || undefined;
-    const sizeId = searchParams.get("sizeId") || undefined;
     const isFeatured = searchParams.get("isFeatured") || undefined;
 
     if (!params.storeId) {
@@ -109,16 +176,28 @@ export async function GET(
       where: {
         storeId: params.storeId,
         categoryId,
-        colorId,
-        sizeId,
         isFeatured: isFeatured ? true : undefined,
         isArchived: false,
       },
       include: {
         images: true,
         category: true,
-        color: true,
-        size: true,
+        variants: {
+          include: {
+            options: true,
+          },
+        },
+        productVariants: {
+          include: {
+            product: {
+              include: {
+                images: true,
+                variants: true,
+              },
+            },
+            options: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
