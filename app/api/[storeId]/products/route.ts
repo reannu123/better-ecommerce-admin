@@ -105,7 +105,18 @@ export async function POST(
     });
 
     if (!productWithVariants) {
-      return new NextResponse("Product not found", { status: 404 });
+      const productWithProductVariants = await prismadb.product.update({
+        where: { id: product.id },
+        data: {
+          productVariants: {
+            create: {
+              price: price,
+              availability: 888,
+            },
+          },
+        },
+      });
+      return NextResponse.json(productWithProductVariants);
     }
     const updatedVariants = productWithVariants.variants;
 

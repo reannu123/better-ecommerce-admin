@@ -202,8 +202,20 @@ export async function PATCH(
       },
     });
 
-    if (!productWithVariants) {
-      return new NextResponse("Product not found", { status: 404 });
+    if (!productWithVariants || !productWithVariants.variants.length) {
+      console.log("No variants found");
+      const productWithProductVariants = await prismadb.product.update({
+        where: { id: product.id },
+        data: {
+          productVariants: {
+            create: {
+              price: price,
+              availability: 888,
+            },
+          },
+        },
+      });
+      return NextResponse.json(productWithProductVariants);
     }
     const updatedVariants = productWithVariants.variants;
 

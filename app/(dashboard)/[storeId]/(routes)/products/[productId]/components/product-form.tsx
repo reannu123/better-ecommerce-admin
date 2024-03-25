@@ -50,14 +50,12 @@ const formSchema = z.object({
   images: z.object({ url: z.string() }).array().min(1),
   isFeatured: z.boolean().default(false).optional(),
   isArchived: z.boolean().default(false).optional(),
-  variants: z
-    .array(
-      z.object({
-        title: z.string().min(1),
-        options: z.array(z.object({ value: z.string().min(1) })).min(1),
-      })
-    )
-    .min(1),
+  variants: z.array(
+    z.object({
+      title: z.string().min(1),
+      options: z.array(z.object({ value: z.string().min(1) })).min(1),
+    })
+  ),
 });
 
 type ProductFormValues = z.infer<typeof formSchema>;
