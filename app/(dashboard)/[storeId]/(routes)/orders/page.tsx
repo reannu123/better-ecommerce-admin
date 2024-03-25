@@ -19,6 +19,7 @@ const OrdersPage: React.FC<OrdersPageProps> = async ({ params }) => {
           productVariant: {
             include: {
               product: true,
+              options: true,
             },
           },
         },
@@ -36,6 +37,9 @@ const OrdersPage: React.FC<OrdersPageProps> = async ({ params }) => {
     isPaid: order.isPaid,
     products: order.orderItems
       .map((orderItem) => orderItem.productVariant.product.name)
+      .join(", "),
+    variant: order.orderItems
+      .map((orderItem) => orderItem.productVariant.options.map((option) => option.value).join(", "))
       .join(", "),
     totalPrice: formatter.format(
       order.orderItems.reduce((total, order) => {
