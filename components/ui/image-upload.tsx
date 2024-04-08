@@ -5,6 +5,7 @@ import { Button } from "./button";
 import { ImagePlus, Trash } from "lucide-react";
 import Image from "next/image";
 import { CldUploadWidget } from "next-cloudinary";
+import { env } from "next-runtime-env";
 interface ImageUploadProps {
   disabled?: boolean;
   onChange: (value: string) => void;
@@ -60,7 +61,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       </div>
       <CldUploadWidget
         onUpload={onUpload}
-        uploadPreset="bodhifnm"
+        uploadPreset={env("NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET")}
       >
         {({ open }) => {
           const onClick = () => {
