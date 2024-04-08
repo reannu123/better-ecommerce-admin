@@ -13,6 +13,10 @@ RUN npm i
 
 # Copy all files
 COPY . .
+
+# Set the NEXT_PUBLIC_API_URL as an environment variable
+ENV NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="dobxcgouc"
+ENV NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET="bodhifnm"
 RUN npx prisma generate
 RUN npm run build
 
