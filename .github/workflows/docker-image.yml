@@ -34,3 +34,6 @@ jobs:
         platforms: linux/arm64, linux/amd64
         push: true
         tags: ${{ github.repository }}:latest
+        build-args: |
+          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+          NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
