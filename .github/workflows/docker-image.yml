@@ -28,9 +28,6 @@ jobs:
 
     - name: Build the Docker image and Push to DockerHub
       uses: docker/build-push-action@v5
-      env:
-        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
-        NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET }}
       with:
         context: .
         file: ./Dockerfile
