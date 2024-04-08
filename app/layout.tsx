@@ -5,6 +5,7 @@ import "./globals.css";
 import { ModalProvider } from "@/providers/modal-provider";
 import { ToasterProvider } from "@/providers/toast-provider";
 import { ThemeProvider } from "@/components/theme-provider";
+import { PublicEnvScript } from "next-runtime-env";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,6 +22,9 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
+        <head>
+          <PublicEnvScript />
+        </head>
         <body className={inter.className}>
           <ThemeProvider
             attribute="class"
