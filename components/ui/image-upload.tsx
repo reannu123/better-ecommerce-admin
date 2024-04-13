@@ -60,8 +60,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         ))}
       </div>
       <CldUploadWidget
-        onUpload={onUpload}
+        onSuccess={onUpload}
         uploadPreset={env("NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET")}
+        config={{
+          cloud: {
+            cloudName: env("NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME"),
+          },
+        }}
       >
         {({ open }) => {
           const onClick = () => {
