@@ -78,16 +78,16 @@ docker compose down -v
 The app does not require seed data; after signing in, it can create an empty
 store through the UI. For a populated local dashboard:
 
-1. Sign in once through Clerk.
-2. Copy your Clerk user ID from the Clerk dashboard.
-3. Set `SEED_CLERK_USER_ID` in `.env`.
-4. Run:
+1. Sign in and create a store.
+2. Run:
 
 ```bash
 docker compose run --rm app npm run db:seed
 ```
 
-The seed is idempotent and creates a demo store, catalog data, and a paid order.
+The seed uses the first existing store by default. Set `SEED_CLERK_USER_ID` to
+target a specific user's store. It is idempotent and creates demo catalog data
+plus six months of paid orders for the revenue graph.
 
 ## Run Without the App Container
 
@@ -140,6 +140,7 @@ npm run db:studio
 ## Known Limitations
 
 - Clerk keys are required even for local development.
-- Image upload is unavailable until Cloudinary is configured.
+- Image upload is disabled until Cloudinary is configured. Products and
+  billboards can still be created without images for local development.
 - Checkout is unavailable until PayMongo is configured.
 - The PayMongo webhook endpoint does not yet verify webhook signatures.

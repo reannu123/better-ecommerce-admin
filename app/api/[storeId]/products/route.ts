@@ -28,12 +28,6 @@ export async function POST(
       return new NextResponse("Name is required", { status: 400 });
     }
 
-    if (!images || !images.length) {
-      return new NextResponse("At least one image is required", {
-        status: 400,
-      });
-    }
-
     if (!price) {
       return new NextResponse("Price is required", { status: 400 });
     }
@@ -72,7 +66,7 @@ export async function POST(
         storeId: params.storeId,
         images: {
           createMany: {
-            data: [...images.map((image: { url: string }) => image)],
+            data: (images || []).map((image: { url: string }) => image),
           },
         },
         variants: {

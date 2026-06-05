@@ -19,6 +19,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   value,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
+  const cloudName = env("NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME");
+  const uploadPreset = env("NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET");
+  const isCloudinaryConfigured = Boolean(cloudName && uploadPreset);
+  const isDisabled = disabled || !isCloudinaryConfigured;
 
   useEffect(() => {
     setIsMounted(true);
@@ -44,6 +48,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
               <Button
                 type="button"
                 onClick={() => onRemove(url)}
+                disabled={isDisabled}
                 variant="destructive"
                 size={"icon"}
               >
@@ -59,32 +64,43 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           </div>
         ))}
       </div>
-      <CldUploadWidget
-        onSuccess={onUpload}
-        uploadPreset={env("NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET")}
-        config={{
-          cloud: {
-            cloudName: env("NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME"),
-          },
-        }}
-      >
-        {({ open }) => {
-          const onClick = () => {
-            open();
-          };
-          return (
+      {isCloudinaryConfigured ? (
+        <CldUploadWidget
+          onSuccess={onUpload}
+          uploadPreset={uploadPreset}
+          config={{
+            cloud: {
+              cloudName,
+            },
+          }}
+        >
+          {({ open }) => (
             <Button
               type="button"
-              onClick={onClick}
-              disabled={disabled}
+              onClick={() => open()}
+              disabled={isDisabled}
               variant={"secondary"}
             >
               <ImagePlus className="h-4 w-4 mr-2" />
               Upload an Image
             </Button>
-          );
-        }}
-      </CldUploadWidget>
+          )}
+        </CldUploadWidget>
+      ) : (
+        <div className="space-y-2">
+          <Button
+            type="button"
+            disabled
+            variant="secondary"
+          >
+            <ImagePlus className="h-4 w-4 mr-2" />
+            Image Upload Disabled
+          </Button>
+          <p className="text-sm text-muted-foreground">
+            Configure Cloudinary in your environment to enable image uploads.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

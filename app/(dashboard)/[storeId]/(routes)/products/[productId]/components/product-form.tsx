@@ -47,7 +47,7 @@ const formSchema = z.object({
   description: z.string().min(1).max(300),
   categoryId: z.string().min(1),
   price: z.coerce.number().min(1),
-  images: z.object({ url: z.string() }).array().min(1),
+  images: z.object({ url: z.string() }).array(),
   isFeatured: z.boolean().default(false).optional(),
   isArchived: z.boolean().default(false).optional(),
   variants: z.array(
