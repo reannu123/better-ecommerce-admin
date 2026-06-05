@@ -3,6 +3,12 @@
 Admin dashboard for managing ecommerce stores, billboards, categories, products,
 variants, orders, and sales metrics.
 
+## Screenshots
+
+![Dashboard](docs/screenshots/dashboard.png)
+![Products](docs/screenshots/products.png)
+![Orders](docs/screenshots/orders.png)
+
 ## Stack
 
 - Next.js 14 App Router, React 18, and TypeScript
