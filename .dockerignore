@@ -2,3 +2,7 @@ node_modules
 .vscode
 .next
 .env
+.env.*
+!.env.example
+.git
+npm-debug.log*

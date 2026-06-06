@@ -69,12 +69,6 @@ export async function PATCH(
       return new NextResponse("Name is required", { status: 400 });
     }
 
-    if (!images || !images.length) {
-      return new NextResponse("At least one image is required", {
-        status: 400,
-      });
-    }
-
     if (!price) {
       return new NextResponse("Price is required", { status: 400 });
     }
@@ -163,7 +157,7 @@ export async function PATCH(
       data: {
         images: {
           createMany: {
-            data: images.map((image: string) => image),
+            data: (images || []).map((image: { url: string }) => image),
           },
         },
         variants: {

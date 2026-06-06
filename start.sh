@@ -1,5 +1,6 @@
 #!/bin/sh
 
+set -eu
+
 npx prisma migrate deploy
-npm run build
-npm start
+exec npm run dev -- --hostname 0.0.0.0

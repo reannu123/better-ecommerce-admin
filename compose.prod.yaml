@@ -1,0 +1,71 @@
+name: better-ecommerce-admin-prod
+
+x-build: &app-build
+  context: .
+  args:
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+    NEXT_PUBLIC_CLERK_SIGN_IN_URL: ${NEXT_PUBLIC_CLERK_SIGN_IN_URL:-/sign-in}
+    NEXT_PUBLIC_CLERK_SIGN_UP_URL: ${NEXT_PUBLIC_CLERK_SIGN_UP_URL:-/sign-up}
+    NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: ${NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL:-/}
+    NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: ${NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL:-/}
+    NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:-}
+    NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET:-}
+
+x-app-environment: &app-environment
+  DATABASE_URL: mysql://${MYSQL_USER:-ecommerce}:${MYSQL_PASSWORD:-ecommerce}@db:3306/${MYSQL_DATABASE:-ecommerce_admin}
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+  CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+  NEXT_PUBLIC_CLERK_SIGN_IN_URL: ${NEXT_PUBLIC_CLERK_SIGN_IN_URL:-/sign-in}
+  NEXT_PUBLIC_CLERK_SIGN_UP_URL: ${NEXT_PUBLIC_CLERK_SIGN_UP_URL:-/sign-up}
+  NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: ${NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL:-/}
+  NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: ${NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL:-/}
+  NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:-}
+  NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET:-}
+  PAYMONGO_SECRET_KEY: ${PAYMONGO_SECRET_KEY:-}
+  PAYMENT_REDIRECT_SUCCESS: ${PAYMENT_REDIRECT_SUCCESS:-}
+  PAYMENT_REDIRECT_CANCELED: ${PAYMENT_REDIRECT_CANCELED:-}
+
+services:
+  migrate:
+    image: better-ecommerce-admin:migration
+    build:
+      <<: *app-build
+      target: migration
+    environment: *app-environment
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    image: better-ecommerce-admin:production
+    build:
+      <<: *app-build
+      target: production
+    init: true
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment: *app-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-ecommerce_admin}
+      MYSQL_USER: ${MYSQL_USER:-ecommerce}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ecommerce}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-local_root_password}
+    volumes:
+      - mysql_prod_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  mysql_prod_data:
