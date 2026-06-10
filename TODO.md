@@ -5,16 +5,16 @@ Last updated: 2026-06-18
 ## Project
 
 - Path: `/home/reannu123/Projects/Scratch/better-ecommerce-admin`
-- Status: active
+- Status: complete
 - Stage: revival
-- Branch: `revive/project-setup`
+- Branch: `main`
 - Portfolio role: Dockerized ecommerce admin dashboard and internal business
   system
 
 ## Current Milestone
 
-Close the revival branch with repeatable development and production-like
-verification, then merge it to the default branch.
+Revival complete. The project has repeatable development and production-like
+verification, and the revival branch was merged through GitHub PR #3.
 
 This milestone is about proving the existing app can be run and understood. It
 does not include changing authentication or image providers.
@@ -29,22 +29,18 @@ does not include changing authentication or image providers.
       production-like stack and applies migrations.
 - [x] README, `.env.example`, screenshots, limitations, and verification
       commands match the repository.
-- [ ] The revival branch is merged to the default branch and the working tree
+- [x] The revival branch is merged to the default branch and the working tree
       is clean.
 
 ## Now
 
-- [ ] Recheck README commands and environment-variable descriptions against
-      the verified behavior.
-- [ ] Review `main...revive/project-setup`, merge the branch, and record the
-      final commit or pull request in `Done`.
-- [ ] Update `~/Freelance/NOW.md` and `~/Freelance/PROJECTS.md`, then activate
-      Event Countdown.
+- [x] No active revival tasks remain. Future work belongs under Later or the
+      flagship phase.
 
 ## Next
 
-- [ ] Fix only issues found during final review before the revival branch is
-      merged.
+- [ ] Reconsider deployment or a case study only after the three-project
+      portfolio baseline is complete.
 
 ## Later
 
@@ -109,3 +105,5 @@ Acceptance criteria if the migration is approved:
 - [x] Verified production-like Docker smoke test by user confirmation on
       2026-06-18: production build works, migrations run, and demo seeding
       works against the production-like database.
+- [x] Merged GitHub PR #3 on 2026-06-18:
+      https://github.com/reannu123/better-ecommerce-admin/pull/3
