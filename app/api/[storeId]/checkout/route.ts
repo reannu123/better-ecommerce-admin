@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import axios from "axios";
+import { randomUUID } from "crypto";
 import prismadb from "@/lib/prismadb";
 import { sendPaymongo, createOptions, LineItem } from "@/lib/paymongo";
 
@@ -17,6 +19,13 @@ export async function POST(
   { params }: { params: { storeId: string } }
 ) {
   try {
+    if (!process.env.PAYMONGO_SECRET_KEY) {
+      return NextResponse.json(
+        { error: "PayMongo test secret key is not configured." },
+        { headers: corsHeaders, status: 503 }
+      );
+    }
+
     const { productIds } = await req.json();
 
     if (!productIds || productIds.length === 0) {
@@ -38,6 +47,13 @@ export async function POST(
       },
     });
 
+    if (productVariants.length !== productIds.length) {
+      return NextResponse.json(
+        { error: "One or more product variants are unavailable." },
+        { headers: corsHeaders, status: 400 }
+      );
+    }
+
     const line_items: LineItem[] = productVariants.map((productVariant) => {
       return {
         name: productVariant.product.name,
@@ -48,8 +64,20 @@ export async function POST(
       };
     });
 
-    const order = await prismadb.order.create({
+    const orderId = randomUUID();
+
+    const options = createOptions({
+      line_items,
+      success_url: `${process.env.PAYMENT_REDIRECT_SUCCESS}`,
+      cancel_url: `${process.env.PAYMENT_REDIRECT_CANCELED}`,
+      reference_number: orderId,
+    });
+
+    const response = await sendPaymongo(options);
+
+    await prismadb.order.create({
       data: {
+        id: orderId,
         storeId: params.storeId,
         isPaid: false,
         orderItems: {
@@ -61,20 +89,17 @@ export async function POST(
       },
     });
 
-    const options = createOptions({
-      line_items,
-      success_url: `${process.env.PAYMENT_REDIRECT_SUCCESS}`,
-      cancel_url: `${process.env.PAYMENT_REDIRECT_CANCELED}`,
-      reference_number: order.id,
-    });
-
-    const response = await sendPaymongo(options);
     return NextResponse.json(response, { headers: corsHeaders });
   } catch (error) {
-    console.log(" [CHECKOUT_POST]", error);
-    return new NextResponse("Internal error", {
-      headers: corsHeaders,
-      status: 500,
-    });
+    const status = axios.isAxiosError(error) ? error.response?.status || 502 : 500;
+    const message =
+      status === 401
+        ? "PayMongo rejected the configured test secret key."
+        : "Unable to create a checkout session.";
+
+    return NextResponse.json(
+      { error: message },
+      { headers: corsHeaders, status }
+    );
   }
 }

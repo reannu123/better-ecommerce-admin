@@ -131,16 +131,8 @@ interface CheckoutSession {
 }
 
 export const sendPaymongo = async (options: any) => {
-  const response = await axios
-    .request(options)
-    .then(function (response: any) {
-      console.log(response.data);
-      return response.data.data;
-    })
-    .catch(function (error: any) {
-      console.error(error);
-    });
-  return response;
+  const response = await axios.request(options);
+  return response.data.data;
 };
 
 export const createOptions = (requestOptions: RequestOptions) => {
