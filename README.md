@@ -1,36 +1,145 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Better Ecommerce Admin
 
-## Getting Started
+Admin dashboard for managing ecommerce stores, billboards, categories, products,
+variants, orders, and sales metrics.
 
-First, run the development server:
+## Stack
+
+- Next.js 14 App Router, React 18, and TypeScript
+- Tailwind CSS and shadcn/ui components
+- Clerk authentication
+- Prisma ORM with MySQL
+- Cloudinary image uploads
+- PayMongo checkout integration
+- Docker and Docker Compose for local development
+
+## Prerequisites
+
+- Docker with Docker Compose
+- A Clerk development application
+- Optional: Cloudinary account for image uploads
+- Optional: PayMongo test account for checkout
+
+## Clerk Setup
+
+Clerk is required because stores are owned by Clerk user IDs and all dashboard
+routes are protected.
+
+1. Create a development application in the Clerk dashboard.
+2. Open **API Keys** and copy the publishable and secret keys.
+3. Put them in `.env` as `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and
+   `CLERK_SECRET_KEY`.
+4. Keep the included `/sign-in` and `/sign-up` URLs. Clerk development
+   instances support localhost.
+
+## Run With Docker
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Fill in the two required Clerk keys, then run:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+docker compose up --build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+If Docker reports permission denied for `/var/run/docker.sock`, add your user to
+the Docker group, then log out and back in:
 
-## Learn More
+```bash
+sudo usermod -aG docker "$USER"
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open <http://localhost:3000>. Sign up or sign in, then create your first store
+when prompted.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The Compose stack starts:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- Admin app: <http://localhost:3000>
+- MySQL: `localhost:3306`
 
-## Deploy on Vercel
+Prisma migrations run automatically when the app container starts.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Stop the stack with:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+```bash
+docker compose down
+```
+
+To also remove local database data:
+
+```bash
+docker compose down -v
+```
+
+## Optional Demo Data
+
+The app does not require seed data; after signing in, it can create an empty
+store through the UI. For a populated local dashboard:
+
+1. Sign in once through Clerk.
+2. Copy your Clerk user ID from the Clerk dashboard.
+3. Set `SEED_CLERK_USER_ID` in `.env`.
+4. Run:
+
+```bash
+docker compose run --rm app npm run db:seed
+```
+
+The seed is idempotent and creates a demo store, catalog data, and a paid order.
+
+## Run Without the App Container
+
+Use Node.js 20. Start only MySQL with Docker:
+
+```bash
+cp .env.example .env
+docker compose up -d db
+npm ci
+npm run db:generate
+npm run db:deploy
+npm run dev
+```
+
+Open <http://localhost:3000>.
+
+## Environment Variables
+
+Required:
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk browser key |
+| `CLERK_SECRET_KEY` | Clerk server key |
+| `DATABASE_URL` | MySQL connection used outside Compose |
+
+Optional:
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
+| `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | Unsigned upload preset |
+| `PAYMONGO_SECRET_KEY` | PayMongo test secret key |
+| `PAYMENT_REDIRECT_SUCCESS` | Successful checkout redirect |
+| `PAYMENT_REDIRECT_CANCELED` | Canceled checkout redirect |
+| `SEED_CLERK_USER_ID` | Owner of optional demo data |
+
+See `.env.example` for the complete local configuration.
+
+## Database Commands
+
+```bash
+npm run db:generate
+npm run db:migrate -- --name migration_name
+npm run db:deploy
+npm run db:seed
+npm run db:studio
+```
+
+## Known Limitations
+
+- Clerk keys are required even for local development.
+- Image upload is unavailable until Cloudinary is configured.
+- Checkout is unavailable until PayMongo is configured.
+- The PayMongo webhook endpoint does not yet verify webhook signatures.
