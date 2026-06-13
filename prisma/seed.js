@@ -4,21 +4,30 @@ const prisma = new PrismaClient();
 
 async function main() {
   const userId = process.env.SEED_CLERK_USER_ID;
+  const existingStore = await prisma.store.findFirst({
+    where: userId ? { userId } : undefined,
+    orderBy: { createdAt: "asc" },
+  });
 
-  if (!userId) {
+  if (!existingStore && !userId) {
     throw new Error(
-      "SEED_CLERK_USER_ID is required. Copy your Clerk user ID into .env before seeding."
+      "No store exists. Create one in the app or set SEED_CLERK_USER_ID before seeding."
     );
   }
 
-  const store = await prisma.store.upsert({
-    where: { id: "demo-store" },
-    update: { name: "Demo Store", userId },
-    create: { id: "demo-store", name: "Demo Store", userId },
-  });
+  const store =
+    existingStore ||
+    (await prisma.store.create({
+      data: {
+        id: "demo-store",
+        name: "Demo Store",
+        userId,
+      },
+    }));
+  const idSuffix = store.id;
 
   const billboard = await prisma.billboard.upsert({
-    where: { id: "demo-billboard" },
+    where: { id: `demo-billboard-${idSuffix}` },
     update: {
       label: "Summer Collection",
       imageUrl:
@@ -26,7 +35,7 @@ async function main() {
       storeId: store.id,
     },
     create: {
-      id: "demo-billboard",
+      id: `demo-billboard-${idSuffix}`,
       label: "Summer Collection",
       imageUrl:
         "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg",
@@ -35,14 +44,14 @@ async function main() {
   });
 
   const category = await prisma.category.upsert({
-    where: { id: "demo-category" },
+    where: { id: `demo-category-${idSuffix}` },
     update: {
       name: "Apparel",
       storeId: store.id,
       billboardId: billboard.id,
     },
     create: {
-      id: "demo-category",
+      id: `demo-category-${idSuffix}`,
       name: "Apparel",
       storeId: store.id,
       billboardId: billboard.id,
@@ -50,7 +59,7 @@ async function main() {
   });
 
   const product = await prisma.product.upsert({
-    where: { id: "demo-product" },
+    where: { id: `demo-product-${idSuffix}` },
     update: {
       name: "Classic Hoodie",
       description: "A seeded product for local dashboard development.",
@@ -61,7 +70,7 @@ async function main() {
       categoryId: category.id,
     },
     create: {
-      id: "demo-product",
+      id: `demo-product-${idSuffix}`,
       name: "Classic Hoodie",
       description: "A seeded product for local dashboard development.",
       price: 1499,
@@ -72,16 +81,20 @@ async function main() {
   });
 
   const variant = await prisma.variant.upsert({
-    where: { id: "demo-variant" },
+    where: { id: `demo-variant-${idSuffix}` },
     update: { title: "Size", productId: product.id },
-    create: { id: "demo-variant", title: "Size", productId: product.id },
+    create: {
+      id: `demo-variant-${idSuffix}`,
+      title: "Size",
+      productId: product.id,
+    },
   });
 
   const option = await prisma.option.upsert({
-    where: { id: "demo-option" },
+    where: { id: `demo-option-${idSuffix}` },
     update: { value: "Medium", price: 0, variantId: variant.id },
     create: {
-      id: "demo-option",
+      id: `demo-option-${idSuffix}`,
       value: "Medium",
       price: 0,
       variantId: variant.id,
@@ -89,7 +102,7 @@ async function main() {
   });
 
   const productVariant = await prisma.productVariant.upsert({
-    where: { id: "demo-product-variant" },
+    where: { id: `demo-product-variant-${idSuffix}` },
     update: {
       price: 1499,
       availability: 25,
@@ -97,7 +110,7 @@ async function main() {
       options: { set: [{ id: option.id }] },
     },
     create: {
-      id: "demo-product-variant",
+      id: `demo-product-variant-${idSuffix}`,
       price: 1499,
       availability: 25,
       productId: product.id,
@@ -106,51 +119,66 @@ async function main() {
   });
 
   await prisma.image.upsert({
-    where: { id: "demo-image" },
+    where: { id: `demo-image-${idSuffix}` },
     update: {
       url: "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg",
       productId: product.id,
     },
     create: {
-      id: "demo-image",
+      id: `demo-image-${idSuffix}`,
       url: "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg",
       productId: product.id,
     },
   });
 
-  const order = await prisma.order.upsert({
-    where: { id: "demo-order" },
-    update: {
-      isPaid: true,
-      phone: "09171234567",
-      address: "Manila, Philippines",
-      storeId: store.id,
-    },
-    create: {
-      id: "demo-order",
-      isPaid: true,
-      phone: "09171234567",
-      address: "Manila, Philippines",
-      storeId: store.id,
-    },
-  });
+  const monthlyQuantities = [1, 3, 2, 5, 4, 7];
+  const now = new Date();
 
-  await prisma.orderItem.upsert({
-    where: { id: "demo-order-item" },
-    update: {
-      quantity: 1,
-      orderId: order.id,
-      productVariantId: productVariant.id,
-    },
-    create: {
-      id: "demo-order-item",
-      quantity: 1,
-      orderId: order.id,
-      productVariantId: productVariant.id,
-    },
-  });
+  for (const [index, quantity] of monthlyQuantities.entries()) {
+    const orderDate = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 5 + index, 15)
+    );
+    const monthKey = orderDate.toISOString().slice(0, 7);
+    const orderId = `demo-order-${idSuffix}-${monthKey}`;
 
-  console.log(`Seeded Demo Store for Clerk user ${userId}.`);
+    const order = await prisma.order.upsert({
+      where: { id: orderId },
+      update: {
+        isPaid: true,
+        phone: "09171234567",
+        address: "Manila, Philippines",
+        storeId: store.id,
+        createdAt: orderDate,
+      },
+      create: {
+        id: orderId,
+        isPaid: true,
+        phone: "09171234567",
+        address: "Manila, Philippines",
+        storeId: store.id,
+        createdAt: orderDate,
+      },
+    });
+
+    await prisma.orderItem.upsert({
+      where: { id: `demo-order-item-${idSuffix}-${monthKey}` },
+      update: {
+        quantity,
+        orderId: order.id,
+        productVariantId: productVariant.id,
+      },
+      create: {
+        id: `demo-order-item-${idSuffix}-${monthKey}`,
+        quantity,
+        orderId: order.id,
+        productVariantId: productVariant.id,
+      },
+    });
+  }
+
+  console.log(
+    `Seeded catalog data and ${monthlyQuantities.length} months of paid orders for ${store.name}.`
+  );
 }
 
 main()
