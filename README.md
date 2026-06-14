@@ -3,6 +3,35 @@
 Admin dashboard for managing ecommerce stores, billboards, categories, products,
 variants, orders, and sales metrics.
 
+## Quick Commands
+
+Daily development:
+
+```bash
+docker compose up --build
+```
+
+Production-like local test:
+
+```bash
+docker compose -f compose.prod.yaml up --build
+```
+
+Stop development:
+
+```bash
+docker compose down
+```
+
+Stop production:
+
+```bash
+docker compose -f compose.prod.yaml down
+```
+
+Use `docker compose up` while coding. Use the production command only when
+testing the optimized image before deployment.
+
 ## Screenshots
 
 ![Dashboard](docs/screenshots/dashboard.png)
@@ -17,7 +46,8 @@ variants, orders, and sales metrics.
 - Prisma ORM with MySQL
 - Cloudinary image uploads
 - PayMongo checkout integration
-- Docker and Docker Compose for local development
+- Multi-stage Docker builds for development and production
+- Docker Compose for local development and production-like testing
 
 ## Prerequisites
 
@@ -38,7 +68,7 @@ routes are protected.
 4. Keep the included `/sign-in` and `/sign-up` URLs. Clerk development
    instances support localhost.
 
-## Run With Docker
+## Development With Docker
 
 ```bash
 cp .env.example .env
@@ -49,6 +79,9 @@ Fill in the two required Clerk keys, then run:
 ```bash
 docker compose up --build
 ```
+
+This selects the Dockerfile's `development` target, bind-mounts the source code,
+and runs `next dev` with hot reload.
 
 If Docker reports permission denied for `/var/run/docker.sock`, add your user to
 the Docker group, then log out and back in:
@@ -78,6 +111,53 @@ To also remove local database data:
 ```bash
 docker compose down -v
 ```
+
+## Production With Docker
+
+The same Dockerfile also contains a minimal `production` target. It builds
+Next.js standalone output and runs `node server.js` as a non-root user.
+
+To build and run the production stack locally:
+
+```bash
+docker compose -f compose.prod.yaml up --build
+```
+
+Open <http://localhost:3000>.
+
+The production Compose stack:
+
+- Builds an immutable production image without source bind mounts.
+- Runs `prisma migrate deploy` in a one-shot migration container.
+- Starts the app only after migrations succeed.
+- Keeps MySQL private to the Compose network.
+- Persists production-test data in a separate Docker volume.
+- Restarts the app and database after unexpected exits.
+
+Stop the production stack with:
+
+```bash
+docker compose -f compose.prod.yaml down
+```
+
+Remove its local database data with:
+
+```bash
+docker compose -f compose.prod.yaml down -v
+```
+
+For a real deployment, replace the included MySQL service with a managed
+database or a backed-up database host. Supply production Clerk credentials,
+HTTPS payment redirect URLs, and all secrets through the deployment platform.
+
+## Docker Targets
+
+| Target | Purpose | Process |
+| --- | --- | --- |
+| `development` | Daily local development | `next dev` |
+| `builder` | Compile the standalone Next.js app | `next build` |
+| `migration` | Apply committed Prisma migrations | `prisma migrate deploy` |
+| `production` | Minimal runtime image | `node server.js` |
 
 ## Optional Demo Data
 

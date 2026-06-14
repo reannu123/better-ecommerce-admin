@@ -11,8 +11,15 @@ const CategoriesPage: React.FC<CategoriesPageProps> = async ({ params }) => {
     where: {
       storeId: params.storeId,
     },
-    include: {
-      billboard: true,
+    select: {
+      id: true,
+      name: true,
+      createdAt: true,
+      billboard: {
+        select: {
+          label: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
