@@ -125,6 +125,21 @@ docker compose -f compose.prod.yaml up --build
 
 Open <http://localhost:3000>.
 
+After the app starts, sign in and create or select a store. To seed demo data
+into the production-like database, run this from another terminal:
+
+```bash
+docker compose -f compose.prod.yaml run --rm migrate sh -c "npx prisma generate && npm run db:seed"
+```
+
+The production-like stack uses its own `mysql_prod_data` volume, so data seeded
+through the development Compose stack will not appear here. If you need to seed
+data for a specific Clerk user, pass `SEED_CLERK_USER_ID`:
+
+```bash
+docker compose -f compose.prod.yaml run --rm -e SEED_CLERK_USER_ID="user_xxx" migrate sh -c "npx prisma generate && npm run db:seed"
+```
+
 The production Compose stack:
 
 - Builds an immutable production image without source bind mounts.
