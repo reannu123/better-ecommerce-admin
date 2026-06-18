@@ -2,7 +2,6 @@ import { format } from "date-fns";
 import prismadb from "@/lib/prismadb";
 import { OrderClient } from "./components/client";
 import { OrderColumn } from "./components/columns";
-import { Item } from "@radix-ui/react-dropdown-menu";
 import { formatter } from "@/lib/utils";
 interface OrdersPageProps {
   params: { storeId: string };
@@ -13,13 +12,28 @@ const OrdersPage: React.FC<OrdersPageProps> = async ({ params }) => {
     where: {
       storeId: params.storeId,
     },
-    include: {
+    select: {
+      id: true,
+      phone: true,
+      address: true,
+      isPaid: true,
+      createdAt: true,
       orderItems: {
-        include: {
+        select: {
+          quantity: true,
           productVariant: {
-            include: {
-              product: true,
-              options: true,
+            select: {
+              price: true,
+              product: {
+                select: {
+                  name: true,
+                },
+              },
+              options: {
+                select: {
+                  value: true,
+                },
+              },
             },
           },
         },
@@ -46,8 +60,11 @@ const OrdersPage: React.FC<OrdersPageProps> = async ({ params }) => {
       )
       .join(" | "),
     totalPrice: formatter.format(
-      order.orderItems.reduce((total, order) => {
-        return total + Number(order.productVariant.price);
+      order.orderItems.reduce((total, orderItem) => {
+        return (
+          total +
+          Number(orderItem.productVariant.price) * orderItem.quantity
+        );
       }, 0)
     ),
     createdAt: format(order.createdAt, "yyyy-MM-dd"),

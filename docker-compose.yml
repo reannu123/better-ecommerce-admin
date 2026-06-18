@@ -1,31 +1,52 @@
-version: '3'
 services:
   app:
-    container_name: $APP_NAME
-    image: $IMAGE
+    image: better-ecommerce-admin:development
+    build:
+      context: .
+      target: development
+    init: true
     ports:
-      - "${C_PORT}:${PORT}"
-    env_file:
-      - stack.env
-    restart: always
-    networks:
-      - shop-network
-      - default
-  app_db:
-    container_name: $DB_NAME
-    image: mysql:latest
-    volumes:
-      - app_db_data:/var/lib/mysql
+      - "${APP_PORT:-3000}:3000"
     environment:
-      - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
-    networks:
-      - db-network
-      - default
-    restart: always
+      DATABASE_URL: mysql://${MYSQL_USER:-ecommerce}:${MYSQL_PASSWORD:-ecommerce}@db:3306/${MYSQL_DATABASE:-ecommerce_admin}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+      NEXT_PUBLIC_CLERK_SIGN_IN_URL: ${NEXT_PUBLIC_CLERK_SIGN_IN_URL:-/sign-in}
+      NEXT_PUBLIC_CLERK_SIGN_UP_URL: ${NEXT_PUBLIC_CLERK_SIGN_UP_URL:-/sign-up}
+      NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: ${NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL:-/}
+      NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: ${NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL:-/}
+      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:-}
+      NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET:-}
+      PAYMONGO_SECRET_KEY: ${PAYMONGO_SECRET_KEY:-}
+      PAYMENT_REDIRECT_SUCCESS: ${PAYMENT_REDIRECT_SUCCESS:-http://localhost:3000}
+      PAYMENT_REDIRECT_CANCELED: ${PAYMENT_REDIRECT_CANCELED:-http://localhost:3000}
+      SEED_CLERK_USER_ID: ${SEED_CLERK_USER_ID:-}
+    volumes:
+      - .:/app
+      - app_node_modules:/app/node_modules
+      - app_next:/app/.next
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-ecommerce_admin}
+      MYSQL_USER: ${MYSQL_USER:-ecommerce}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ecommerce}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-local_root_password}
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
 volumes:
-  app_db_data:
-networks:
-  db-network:
-    external: true
-  shop-network:
-    external: true
+  app_node_modules:
+  app_next:
+  mysql_data:

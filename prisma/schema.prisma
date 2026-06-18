@@ -6,82 +6,82 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-	relationMode= "prisma"
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 model Store {
-	id        String  @id @default(uuid())
-	name      String
-	userId 		String
+  id         String      @id @default(uuid())
+  name       String
+  userId     String
   billboards Billboard[] @relation("StoreToBillboard")
-  categories Category[] @relation("StoretoCategory")
-  products Product[] @relation("StoretoProduct")
-  orders Order[] @relation("StoreToOrder")
-	createdAt DateTime @default(now()) 
-	updatedAt DateTime @updatedAt
+  categories Category[]  @relation("StoretoCategory")
+  products   Product[]   @relation("StoretoProduct")
+  orders     Order[]     @relation("StoreToOrder")
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 }
 
-model Billboard{
-  id        String  @id @default(uuid())
+model Billboard {
+  id        String     @id @default(uuid())
   storeId   String
-  store     Store @relation("StoreToBillboard", fields: [storeId], references: [id])
+  store     Store      @relation("StoreToBillboard", fields: [storeId], references: [id])
   label     String
   imageUrl  String
   category  Category[]
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@index([storeId], name: "storeId")
 }
 
-model Category{
-  id        String  @id @default(uuid())
-  name      String
-  storeId   String
-  store Store @relation("StoretoCategory", fields: [storeId], references: [id])
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  storeId     String
+  store       Store     @relation("StoretoCategory", fields: [storeId], references: [id])
   billboardId String
-  billboard Billboard @relation(fields: [billboardId], references: [id])
-  products Product[] @relation("CategorytoProduct")
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt
+  billboard   Billboard @relation(fields: [billboardId], references: [id])
+  products    Product[] @relation("CategorytoProduct")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([storeId])
   @@index([billboardId])
 }
 
-model Product{
-  id        String  @id @default(uuid())
-  storeId   String
-  store     Store @relation("StoretoProduct", fields: [storeId], references: [id])
-  categoryId String
-  category  Category @relation("CategorytoProduct", fields: [categoryId], references: [id])
-  name      String
-  description String @db.VarChar(1000) @default("")
-  price     Decimal
-  isFeatured Boolean @default(false)
-  isArchived Boolean @default(false)
-  variants  Variant[]
-  images    Image[] 
+model Product {
+  id              String           @id @default(uuid())
+  storeId         String
+  store           Store            @relation("StoretoProduct", fields: [storeId], references: [id])
+  categoryId      String
+  category        Category         @relation("CategorytoProduct", fields: [categoryId], references: [id])
+  name            String
+  description     String           @default("") @db.VarChar(1000)
+  price           Decimal
+  isFeatured      Boolean          @default(false)
+  isArchived      Boolean          @default(false)
+  variants        Variant[]
+  images          Image[]
   productVariants ProductVariant[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   @@index([storeId])
   @@index([categoryId])
 }
 
 model ProductVariant {
-  id        String   @id @default(uuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  options   Option[]
-  price     Decimal
+  id           String      @id @default(uuid())
+  productId    String
+  product      Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  options      Option[]
+  price        Decimal
   availability Int
-  orderItems OrderItem[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  orderItems   OrderItem[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   @@index([productId])
 }
@@ -99,22 +99,22 @@ model Variant {
 }
 
 model Option {
-  id        String   @id @default(uuid())
-  variantId String
-  variant   Variant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  id              String           @id @default(uuid())
+  variantId       String
+  variant         Variant          @relation(fields: [variantId], references: [id], onDelete: Cascade)
   productVariants ProductVariant[]
-  value     String
-  price     Decimal
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  value           String
+  price           Decimal
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   @@index([variantId])
 }
 
 model Image {
-  id        String  @id @default(uuid())
+  id        String   @id @default(uuid())
   productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   url       String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -122,29 +122,29 @@ model Image {
   @@index([productId])
 }
 
-model Order{
-  id        String  @id @default(uuid())
-  storeId   String
-  store    Store @relation("StoreToOrder", fields: [storeId], references: [id])
+model Order {
+  id         String      @id @default(uuid())
+  storeId    String
+  store      Store       @relation("StoreToOrder", fields: [storeId], references: [id])
   orderItems OrderItem[]
-  isPaid Boolean @default(false)
-  phone String @default("")
-  address String @default("")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isPaid     Boolean     @default(false)
+  phone      String      @default("")
+  address    String      @default("")
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   @@index([storeId])
 }
 
-model OrderItem{
-  id        String  @id @default(uuid())
-  orderId   String
-  order     Order @relation(fields: [orderId], references: [id])
+model OrderItem {
+  id               String         @id @default(uuid())
+  orderId          String
+  order            Order          @relation(fields: [orderId], references: [id])
   productVariantId String
   productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
-  quantity  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  quantity         Int
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   @@index([orderId])
   @@index([productVariantId])
